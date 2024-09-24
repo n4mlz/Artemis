@@ -17,9 +17,10 @@ pub struct LastAction {
     pub perfect_clear: bool,
     pub garbage_sent: u32,
     pub time: u32,
-    pub operations: Vec<Operation>,
+    pub operations: Vec<PieceMovement>,
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum PlacementKind {
     None,
     Clear1,
@@ -35,7 +36,8 @@ pub enum PlacementKind {
     Tspin3,
 }
 
-pub enum Operation {
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum PieceMovement {
     MoveLeft,
     MoveRight,
     SoftDrop,

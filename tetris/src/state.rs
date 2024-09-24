@@ -1,10 +1,12 @@
+use std::collections::{HashMap, VecDeque};
+
 use crate::*;
 
 pub struct State {
     pub board: Board,
     pub current: piece::Piece,
     pub hold: Option<Piece>,
-    pub next: Vec<Piece>,
+    pub next: VecDeque<Piece>,
     pub combo: u32,
     pub b2b: bool,
     pub last_action: LastAction,
@@ -17,7 +19,7 @@ pub struct LastAction {
     pub perfect_clear: bool,
     pub garbage_sent: u32,
     pub time: u32,
-    pub operations: Vec<PieceMovement>,
+    pub operations: Vec<Operation>,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -37,7 +39,7 @@ pub enum PlacementKind {
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum PieceMovement {
+pub enum Operation {
     MoveLeft,
     MoveRight,
     SoftDrop,
@@ -45,4 +47,22 @@ pub enum PieceMovement {
     RotateLeft,  // Counter-clockwise
     RotateRight, // Clockwise
     Hold,
+}
+
+impl State {
+    // TODO: implement
+    pub fn legal_actions(&self) -> Vec<State> {
+        if self.next.is_empty() {
+            return vec![];
+        }
+
+        let new_piece = self.next[0];
+        let initial_field_piece = FieldPiece::new_from_piece(new_piece);
+
+        let mut queue = VecDeque::new();
+        queue.push_back(initial_field_piece);
+
+        let mut field_piece_operations = HashMap::new();
+        field_piece_operations.insert(initial_field_piece, vec![]);
+    }
 }

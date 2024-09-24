@@ -1,7 +1,7 @@
 use crate::*;
 
 pub struct State {
-    pub board: Box<dyn Board>,
+    pub board: Board,
     pub current: piece::Piece,
     pub hold: Option<Piece>,
     pub next: Vec<Piece>,

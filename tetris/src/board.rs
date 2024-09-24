@@ -1,5 +1,1 @@
-pub trait Board {}
-
-type BitBoard = [u16; 40];
-
-impl Board for BitBoard {}
+pub type Board = [u16; 40];

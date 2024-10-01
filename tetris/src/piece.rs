@@ -130,3 +130,21 @@ impl FieldPiece {
         cells.map(|(x, y)| (x + self.position.0, y + self.position.1))
     }
 }
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum PieceMovement {
+    MoveLeft,
+    MoveRight,
+    SoftDrop,
+    HardDrop,
+    RotateLeft,  // Counter-clockwise
+    RotateRight, // Clockwise
+    Hold,
+}
+
+pub struct MovingPiece {
+    pub field_piece: FieldPiece,
+    pub piece_movements: Vec<PieceMovement>,
+    pub is_locked: bool,
+    pub time: u32,
+}

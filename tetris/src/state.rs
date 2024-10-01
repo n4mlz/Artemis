@@ -19,7 +19,7 @@ pub struct LastAction {
     pub perfect_clear: bool,
     pub garbage_sent: u32,
     pub time: u32,
-    pub operations: Vec<Operation>,
+    pub piece_movements: Vec<PieceMovement>,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -38,20 +38,9 @@ pub enum PlacementKind {
     Tspin3,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum Operation {
-    MoveLeft,
-    MoveRight,
-    SoftDrop,
-    HardDrop,
-    RotateLeft,  // Counter-clockwise
-    RotateRight, // Clockwise
-    Hold,
-}
-
 impl State {
     // TODO: implement
-    pub fn legal_actions(&self) -> Vec<State> {
+    pub fn legal_moves(&self) -> Vec<State> {
         if self.next.is_empty() {
             return vec![];
         }

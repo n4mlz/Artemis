@@ -142,9 +142,21 @@ pub enum PieceMovement {
     Hold,
 }
 
+#[derive(Debug, Eq, PartialEq, Hash)]
 pub struct MovingPiece {
     pub field_piece: FieldPiece,
     pub piece_movements: Vec<PieceMovement>,
     pub is_locked: bool,
     pub time: u32,
+}
+
+impl MovingPiece {
+    pub fn new_from_piece(piece: Piece) -> MovingPiece {
+        MovingPiece {
+            field_piece: FieldPiece::new_from_piece(piece),
+            piece_movements: vec![],
+            is_locked: false,
+            time: 0,
+        }
+    }
 }

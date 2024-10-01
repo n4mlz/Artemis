@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashSet, VecDeque};
 
 use crate::*;
 
@@ -46,12 +46,12 @@ impl State {
         }
 
         let new_piece = self.next[0];
-        let initial_field_piece = FieldPiece::new_from_piece(new_piece);
+        let new_moving_piece = FieldPiece::new_from_piece(new_piece);
 
         let mut queue = VecDeque::new();
-        queue.push_back(initial_field_piece);
+        queue.push_back(new_moving_piece);
 
-        let mut field_piece_operations = HashMap::new();
-        field_piece_operations.insert(initial_field_piece, vec![]);
+        let mut movements = HashSet::new();
+        movements.insert(new_moving_piece);
     }
 }

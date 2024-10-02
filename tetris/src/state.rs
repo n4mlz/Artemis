@@ -40,7 +40,7 @@ pub enum PlacementKind {
 
 impl State {
     // TODO: implement
-    pub fn legal_moves(&self) -> Vec<State> {
+    pub fn legal_actions(&self) -> Vec<State> {
         if self.next.is_empty() {
             return vec![];
         }

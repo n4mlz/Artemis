@@ -7,14 +7,14 @@ pub struct State {
     pub current_piece: Option<Piece>,
     pub hold_piece: Option<Piece>,
     pub next_pieces: VecDeque<Piece>,
-    pub combo: u32,
     pub b2b: bool, // as a state
-    pub last_action: LastAction,
+    pub last_action: Option<LastAction>,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct LastAction {
     pub placement_kind: PlacementKind,
-    pub b2b: bool, // whether used or not
+    pub b2b: bool, // as an action
     pub combo: u32,
     pub perfect_clear: bool,
     pub garbage_sent: u32,
@@ -38,8 +38,18 @@ pub enum PlacementKind {
     Tspin3,
 }
 
+fn is_b2b_enabled(placement_kind: PlacementKind) -> bool {
+    use PlacementKind::*;
+    match placement_kind {
+        Clear4 | MiniTspin | MiniTspin1 | MiniTspin2 | Tspin | Tspin1 | Tspin2 | Tspin3 => true,
+        _ => false,
+    }
+}
+
 impl State {
     fn next_state(&self, mut movement_state: MovementState, time: Time) -> State {
+        use PlacementKind::*;
+
         let (new_board, placement_kind) = self.board.place_piece(movement_state.field_piece);
 
         if placement_kind == PlacementKind::None {
@@ -48,9 +58,8 @@ impl State {
                 current_piece: movement_state.next_pieces.pop_front(),
                 hold_piece: movement_state.hold_piece,
                 next_pieces: movement_state.next_pieces,
-                combo: 0,
-                b2b: false,
-                last_action: LastAction {
+                b2b: is_b2b_enabled(placement_kind),
+                last_action: Some(LastAction {
                     placement_kind,
                     b2b: false,
                     combo: 0,
@@ -58,31 +67,67 @@ impl State {
                     garbage_sent: 0,
                     time: time + DEFAULT_ACTION_TIME.place,
                     movements_history: movement_state.movements_history,
-                },
+                }),
             };
         }
 
-        // TODO: implement
+        if new_board.is_empty() {
+            return State {
+                board: new_board,
+                current_piece: movement_state.next_pieces.pop_front(),
+                hold_piece: movement_state.hold_piece,
+                next_pieces: movement_state.next_pieces,
+                b2b: is_b2b_enabled(placement_kind),
+                last_action: Some(LastAction {
+                    placement_kind,
+                    b2b: false,
+                    combo: 1,
+                    perfect_clear: true,
+                    garbage_sent: DEFAULT_SPECIAL_ATTACK.perfect_clear,
+                    time: time + DEFAULT_ACTION_TIME.perfect_clear,
+                    movements_history: movement_state.movements_history,
+                }),
+            };
+        }
+
+        let base_attack = base_attack(placement_kind);
+        let combo = match &self.last_action {
+            Some(last_action) => last_action.combo + 1,
+            Option::None => 0,
+        };
+        let combo_attack = combo_attack(combo);
+        let b2b_attack = if self.b2b && is_b2b_enabled(placement_kind) {
+            DEFAULT_SPECIAL_ATTACK.b2b
+        } else {
+            0
+        };
+        let garbage_sent = base_attack + combo_attack + b2b_attack;
+        let action_time = match placement_kind {
+            Clear1 | MiniTspin1 | Tspin1 => DEFAULT_ACTION_TIME.single,
+            Clear2 | MiniTspin2 | Tspin2 => DEFAULT_ACTION_TIME.double,
+            Clear3 | Tspin3 => DEFAULT_ACTION_TIME.triple,
+            Clear4 => DEFAULT_ACTION_TIME.tetris,
+            _ => DEFAULT_ACTION_TIME.place,
+        };
+
         State {
             board: new_board,
             current_piece: movement_state.next_pieces.pop_front(),
             hold_piece: movement_state.hold_piece,
             next_pieces: movement_state.next_pieces,
-            combo: 0,
-            b2b: false,
-            last_action: LastAction {
+            b2b: is_b2b_enabled(placement_kind),
+            last_action: Some(LastAction {
                 placement_kind,
-                b2b: false,
-                combo: 0,
+                b2b: self.b2b && is_b2b_enabled(placement_kind),
+                combo,
                 perfect_clear: false,
-                garbage_sent: 0,
-                time: time + DEFAULT_ACTION_TIME.place,
+                garbage_sent,
+                time: time + action_time,
                 movements_history: movement_state.movements_history,
-            },
+            }),
         }
     }
 
-    // TODO: implement
     // dijkstra's algorithm
     pub fn legal_actions(&self) -> Vec<State> {
         if self.current_piece.is_none() {

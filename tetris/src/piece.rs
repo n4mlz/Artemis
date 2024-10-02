@@ -129,6 +129,27 @@ impl FieldPiece {
         let cells = self.piece_state.cells();
         cells.map(|(x, y)| (x + self.position.0, y + self.position.1))
     }
+
+    pub fn move_by(&self, dx: i32, dy: i32) -> FieldPiece {
+        FieldPiece {
+            position: (self.position.0 + dx, self.position.1 + dy),
+            ..*self
+        }
+    }
+
+    pub fn rotate_left(&self) -> FieldPiece {
+        FieldPiece {
+            piece_state: self.piece_state.rotate_left(),
+            ..*self
+        }
+    }
+
+    pub fn rotate_right(&self) -> FieldPiece {
+        FieldPiece {
+            piece_state: self.piece_state.rotate_right(),
+            ..*self
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -142,21 +163,17 @@ pub enum PieceMovement {
     Hold,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
-pub struct MovingPiece {
-    pub field_piece: FieldPiece,
-    pub piece_movements: Vec<PieceMovement>,
-    pub is_locked: bool,
-    pub time: u32,
+pub struct MovementTime {
+    pub move_one: u32,
+    pub hard_drop: u32,
+    pub rotate: u32,
+    pub hold: u32,
 }
 
-impl MovingPiece {
-    pub fn new_from_piece(piece: Piece) -> MovingPiece {
-        MovingPiece {
-            field_piece: FieldPiece::new_from_piece(piece),
-            piece_movements: vec![],
-            is_locked: false,
-            time: 0,
-        }
-    }
-}
+// TODO: make the value correct
+pub const DEFAULT_MOVEMENT_TIME: MovementTime = MovementTime {
+    move_one: 100,
+    hard_drop: 100,
+    rotate: 100,
+    hold: 100,
+};

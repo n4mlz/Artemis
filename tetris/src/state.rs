@@ -1,3 +1,5 @@
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use std::collections::{BinaryHeap, HashMap, VecDeque};
 
 use crate::*;
@@ -47,6 +49,13 @@ fn is_b2b_enabled(placement_kind: PlacementKind) -> bool {
 }
 
 impl State {
+    fn extend_next_pieces(&mut self) {
+        let new_next_pieces = Piece::iter().collect();
+        let mut rng = thread_rng();
+        new_next_pieces.shuffle(&mut rng);
+        self.next_pieces.extend(new_next_pieces);
+    }
+
     fn next_state(&self, mut movement_state: MovementState, time: Time) -> State {
         use PlacementKind::*;
 

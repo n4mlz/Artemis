@@ -1,24 +1,66 @@
+use std::collections::VecDeque;
+
 use crate::*;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-struct MovementState {
+pub struct MovementState {
     field_piece: FieldPiece,
     hold_piece: Option<Piece>,
     movements_history: Vec<PieceMovement>,
+    next_pieces: VecDeque<Piece>,
     has_held: bool,
     is_locked: bool,
     time: u32,
 }
 
 impl MovementState {
-    fn new_from_piece(current_piece: Piece, hold_piece: Option<Piece>) -> MovementState {
+    fn new_from_piece(
+        current_piece: Piece,
+        hold_piece: Option<Piece>,
+        next_pieces: VecDeque<Piece>,
+    ) -> MovementState {
         MovementState {
             field_piece: FieldPiece::new_from_piece(current_piece),
             hold_piece,
+            next_pieces,
             movements_history: vec![],
             has_held: false,
             is_locked: false,
             time: 0,
+        }
+    }
+
+    fn hold(&self) -> Option<MovementState> {
+        if self.has_held || !self.movements_history.is_empty() || self.time > 0 {
+            return None;
+        }
+
+        match self.hold_piece {
+            Some(hold_piece) => Some(MovementState {
+                field_piece: FieldPiece::new_from_piece(hold_piece),
+                hold_piece: Some(self.field_piece.piece_state.piece),
+                next_pieces: self.next_pieces.clone(),
+                movements_history: vec![PieceMovement::Hold],
+                has_held: true,
+                is_locked: false,
+                time: DEFAULT_MOVEMENT_TIME.hold,
+            }),
+
+            None => {
+                if self.next_pieces.is_empty() {
+                    return None;
+                }
+                let mut new_next_pieces = self.next_pieces.clone();
+                Some(MovementState {
+                    field_piece: FieldPiece::new_from_piece(new_next_pieces.pop_front().unwrap()),
+                    hold_piece: Some(self.field_piece.piece_state.piece),
+                    next_pieces: new_next_pieces,
+                    movements_history: vec![PieceMovement::Hold],
+                    has_held: true,
+                    is_locked: false,
+                    time: DEFAULT_MOVEMENT_TIME.hold,
+                })
+            }
         }
     }
 }

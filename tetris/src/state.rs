@@ -4,9 +4,9 @@ use crate::*;
 
 pub struct State {
     pub board: Board,
-    pub current: piece::Piece,
-    pub hold: Option<Piece>,
-    pub next: VecDeque<Piece>,
+    pub current_piece: piece::Piece,
+    pub hold_piece: Option<Piece>,
+    pub next_pieces: VecDeque<Piece>,
     pub combo: u32,
     pub b2b: bool,
     pub last_action: LastAction,
@@ -40,13 +40,13 @@ pub enum PlacementKind {
 
 impl State {
     // TODO: implement
+    // MEMO: dijkstra's algorithm
     pub fn legal_actions(&self) -> Vec<State> {
-        if self.next.is_empty() {
+        if self.next_pieces.is_empty() {
             return vec![];
         }
 
-        let new_piece = self.next[0];
-        let new_moving_piece = FieldPiece::new_from_piece(new_piece);
+        let initial_movment_state = MovementState::new_from_piece(self.next[0]);
 
         let mut queue = VecDeque::new();
         queue.push_back(new_moving_piece);

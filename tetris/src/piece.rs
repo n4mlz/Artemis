@@ -1,5 +1,3 @@
-use crate::*;
-
 type Position = (i32, i32);
 
 // TODO: put in order
@@ -175,18 +173,3 @@ pub enum PieceMovement {
     RotateRight, // Clockwise
     Hold,
 }
-
-pub struct MovementTime {
-    pub move_one: Time,
-    pub hard_drop: Time,
-    pub rotate: Time,
-    pub hold: Time,
-}
-
-// TODO: make the value correct
-pub const DEFAULT_MOVEMENT_TIME: MovementTime = MovementTime {
-    move_one: 100,
-    hard_drop: 100,
-    rotate: 100,
-    hold: 100,
-};

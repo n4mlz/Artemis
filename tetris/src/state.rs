@@ -4,22 +4,22 @@ use crate::*;
 
 pub struct State {
     pub board: Board,
-    pub current_piece: piece::Piece,
+    pub current_piece: Option<Piece>,
     pub hold_piece: Option<Piece>,
     pub next_pieces: VecDeque<Piece>,
     pub combo: u32,
-    pub b2b: bool,
+    pub b2b: bool, // as a state
     pub last_action: LastAction,
 }
 
 pub struct LastAction {
     pub placement_kind: PlacementKind,
-    pub b2b: bool,
+    pub b2b: bool, // whether used or not
     pub combo: u32,
     pub perfect_clear: bool,
     pub garbage_sent: u32,
     pub time: Time,
-    pub piece_movements: Vec<PieceMovement>,
+    pub movements_history: Vec<PieceMovement>,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -39,19 +39,60 @@ pub enum PlacementKind {
 }
 
 impl State {
+    fn next_state(&self, mut movement_state: MovementState, time: Time) -> State {
+        let (new_board, placement_kind) = self.board.place_piece(movement_state.field_piece);
+
+        if placement_kind == PlacementKind::None {
+            return State {
+                board: new_board,
+                current_piece: movement_state.next_pieces.pop_front(),
+                hold_piece: movement_state.hold_piece,
+                next_pieces: movement_state.next_pieces,
+                combo: 0,
+                b2b: false,
+                last_action: LastAction {
+                    placement_kind,
+                    b2b: false,
+                    combo: 0,
+                    perfect_clear: false,
+                    garbage_sent: 0,
+                    time: time + DEFAULT_ACTION_TIME.place,
+                    movements_history: movement_state.movements_history,
+                },
+            };
+        }
+
+        // TODO: implement
+        State {
+            board: new_board,
+            current_piece: movement_state.next_pieces.pop_front(),
+            hold_piece: movement_state.hold_piece,
+            next_pieces: movement_state.next_pieces,
+            combo: 0,
+            b2b: false,
+            last_action: LastAction {
+                placement_kind,
+                b2b: false,
+                combo: 0,
+                perfect_clear: false,
+                garbage_sent: 0,
+                time: time + DEFAULT_ACTION_TIME.place,
+                movements_history: movement_state.movements_history,
+            },
+        }
+    }
+
     // TODO: implement
     // dijkstra's algorithm
     pub fn legal_actions(&self) -> Vec<State> {
-        if self.next_pieces.is_empty() {
+        if self.current_piece.is_none() {
             return vec![];
         }
 
-        let mut new_next_pieces = self.next_pieces.clone();
-
         let initial_movment_state = MovementState::new_from_piece(
-            new_next_pieces.pop_front().unwrap(),
+            self.current_piece.unwrap(),
             self.hold_piece,
-            new_next_pieces,
+            self.next_pieces.clone(),
         );
 
         // priority queue

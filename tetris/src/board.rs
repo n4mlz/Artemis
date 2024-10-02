@@ -6,11 +6,11 @@ pub type Time = u32;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct MovementState {
-    field_piece: FieldPiece,
-    hold_piece: Option<Piece>,
-    movements_history: Vec<PieceMovement>,
-    next_pieces: VecDeque<Piece>,
-    has_held: bool,
+    pub field_piece: FieldPiece,
+    pub hold_piece: Option<Piece>,
+    pub movements_history: Vec<PieceMovement>,
+    pub next_pieces: VecDeque<Piece>,
+    pub has_held: bool,
 }
 
 impl MovementState {
@@ -76,7 +76,7 @@ impl MovementState {
                     movements_history: vec![PieceMovement::Hold],
                     has_held: true,
                 },
-                time: DEFAULT_MOVEMENT_TIME.hold,
+                time: DEFAULT_ACTION_TIME.hold,
             }),
 
             None => {
@@ -94,7 +94,7 @@ impl MovementState {
                         movements_history: vec![PieceMovement::Hold],
                         has_held: true,
                     },
-                    time: DEFAULT_MOVEMENT_TIME.hold,
+                    time: DEFAULT_ACTION_TIME.hold,
                 })
             }
         }
@@ -127,6 +127,7 @@ pub type Board = [u16; 40];
 
 pub trait FieldCells {
     fn occupied(&self, x: i32, y: i32) -> bool;
+    fn is_empty(&self) -> bool;
     fn attempt(&self, field_piece: FieldPiece) -> bool;
     fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementWithTime>;
     fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind);
@@ -135,6 +136,10 @@ pub trait FieldCells {
 impl FieldCells for Board {
     fn occupied(&self, x: i32, y: i32) -> bool {
         !(0..10).contains(&x) || !(0..40).contains(&y) || (self[y as usize] & row_x(x) > 0)
+    }
+
+    fn is_empty(&self) -> bool {
+        self[39] == 0
     }
 
     fn attempt(&self, field_piece: FieldPiece) -> bool {
@@ -167,7 +172,7 @@ impl FieldCells for Board {
                         result.push(MovementWithTime {
                             movement_state: movement_state
                                 .next_movement_state(new_field_piece, piece_movement),
-                            time: DEFAULT_MOVEMENT_TIME.move_one,
+                            time: DEFAULT_ACTION_TIME.move_one,
                         });
                     }
                 }
@@ -178,7 +183,7 @@ impl FieldCells for Board {
                         result.push(MovementWithTime {
                             movement_state: movement_state
                                 .next_movement_state(new_field_piece, piece_movement),
-                            time: DEFAULT_MOVEMENT_TIME.move_one,
+                            time: DEFAULT_ACTION_TIME.move_one,
                         });
                     }
                 }
@@ -197,7 +202,7 @@ impl FieldCells for Board {
                                 new_field_piece,
                                 vec![piece_movement; count as usize],
                             ),
-                            time: DEFAULT_MOVEMENT_TIME.move_one * count,
+                            time: DEFAULT_ACTION_TIME.move_one * count,
                         });
                     }
                 }
@@ -212,7 +217,7 @@ impl FieldCells for Board {
                     new_movement_state.field_piece.is_locked = true;
                     result.push(MovementWithTime {
                         movement_state: new_movement_state,
-                        time: DEFAULT_MOVEMENT_TIME.hard_drop,
+                        time: DEFAULT_ACTION_TIME.hard_drop,
                     });
                 }
 
@@ -223,7 +228,7 @@ impl FieldCells for Board {
                         result.push(MovementWithTime {
                             movement_state: movement_state
                                 .next_movement_state(new_field_piece, piece_movement),
-                            time: DEFAULT_MOVEMENT_TIME.rotate,
+                            time: DEFAULT_ACTION_TIME.rotate,
                         });
                     }
                 }
@@ -235,7 +240,7 @@ impl FieldCells for Board {
                         result.push(MovementWithTime {
                             movement_state: movement_state
                                 .next_movement_state(new_field_piece, piece_movement),
-                            time: DEFAULT_MOVEMENT_TIME.rotate,
+                            time: DEFAULT_ACTION_TIME.rotate,
                         });
                     }
                 }
@@ -249,6 +254,8 @@ impl FieldCells for Board {
     }
 
     fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind) {
+        use PlacementKind::*;
+
         let mut new_board = *self; // copy
         for &(x, y) in field_piece.cells().iter() {
             new_board[y as usize] |= row_x(x);
@@ -269,12 +276,12 @@ impl FieldCells for Board {
 
         if field_piece.piece_state.piece != Piece::T {
             let placement_kind = match cleared_rows {
-                0 => PlacementKind::None,
-                1 => PlacementKind::Clear1,
-                2 => PlacementKind::Clear2,
-                3 => PlacementKind::Clear3,
-                4 => PlacementKind::Clear4,
-                _ => PlacementKind::None,
+                0 => None,
+                1 => Clear1,
+                2 => Clear2,
+                3 => Clear3,
+                4 => Clear4,
+                _ => None,
             };
 
             return (new_board, placement_kind);
@@ -283,33 +290,33 @@ impl FieldCells for Board {
         match field_piece.super_rotation_state {
             SuperRotationState::None => {
                 let placement_kind = match cleared_rows {
-                    0 => PlacementKind::None,
-                    1 => PlacementKind::Clear1,
-                    2 => PlacementKind::Clear2,
-                    3 => PlacementKind::Clear3,
-                    4 => PlacementKind::Clear4,
-                    _ => PlacementKind::None,
+                    0 => None,
+                    1 => Clear1,
+                    2 => Clear2,
+                    3 => Clear3,
+                    4 => Clear4,
+                    _ => None,
                 };
 
                 (new_board, placement_kind)
             }
             SuperRotationState::Mini => {
                 let placement_kind = match cleared_rows {
-                    0 => PlacementKind::MiniTspin,
-                    1 => PlacementKind::MiniTspin1,
-                    2 => PlacementKind::MiniTspin2,
-                    _ => PlacementKind::MiniTspin,
+                    0 => MiniTspin,
+                    1 => MiniTspin1,
+                    2 => MiniTspin2,
+                    _ => MiniTspin,
                 };
 
                 (new_board, placement_kind)
             }
             SuperRotationState::Normal => {
                 let placement_kind = match cleared_rows {
-                    0 => PlacementKind::Tspin,
-                    1 => PlacementKind::Tspin1,
-                    2 => PlacementKind::Tspin2,
-                    3 => PlacementKind::Tspin3,
-                    _ => PlacementKind::Tspin,
+                    0 => Tspin,
+                    1 => Tspin1,
+                    2 => Tspin2,
+                    3 => Tspin3,
+                    _ => Tspin,
                 };
 
                 (new_board, placement_kind)

@@ -1,8 +1,7 @@
-use rand::seq::SliceRandom;
-use rand::thread_rng;
-use std::collections::{BinaryHeap, HashMap, VecDeque};
-
 use crate::*;
+use rand::{seq::SliceRandom, thread_rng};
+use std::collections::{BinaryHeap, HashMap, VecDeque};
+use strum::IntoEnumIterator;
 
 pub struct State {
     pub board: Board,
@@ -49,8 +48,8 @@ fn is_b2b_enabled(placement_kind: PlacementKind) -> bool {
 }
 
 impl State {
-    fn extend_next_pieces(&mut self) {
-        let new_next_pieces = Piece::iter().collect();
+    pub fn extend_next_pieces(&mut self) {
+        let mut new_next_pieces: Vec<_> = Piece::iter().collect();
         let mut rng = thread_rng();
         new_next_pieces.shuffle(&mut rng);
         self.next_pieces.extend(new_next_pieces);

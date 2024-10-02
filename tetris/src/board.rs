@@ -1,7 +1,5 @@
-use std::collections::VecDeque;
-
 use crate::*;
-
+use std::collections::VecDeque;
 pub type Time = u32;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -126,6 +124,7 @@ fn row_x(x: i32) -> u16 {
 pub type Board = [u16; 40];
 
 pub trait FieldCells {
+    fn new() -> Self;
     fn occupied(&self, x: i32, y: i32) -> bool;
     fn is_empty(&self) -> bool;
     fn attempt(&self, field_piece: FieldPiece) -> bool;
@@ -134,6 +133,10 @@ pub trait FieldCells {
 }
 
 impl FieldCells for Board {
+    fn new() -> Board {
+        [0; 40]
+    }
+
     fn occupied(&self, x: i32, y: i32) -> bool {
         !(0..10).contains(&x) || !(0..40).contains(&y) || (self[y as usize] & row_x(x) > 0)
     }

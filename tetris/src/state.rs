@@ -40,10 +40,10 @@ pub enum PlacementKind {
 
 fn is_b2b_enabled(placement_kind: PlacementKind) -> bool {
     use PlacementKind::*;
-    match placement_kind {
-        Clear4 | MiniTspin | MiniTspin1 | MiniTspin2 | Tspin | Tspin1 | Tspin2 | Tspin3 => true,
-        _ => false,
-    }
+    matches!(
+        placement_kind,
+        Clear4 | MiniTspin | MiniTspin1 | MiniTspin2 | Tspin | Tspin1 | Tspin2 | Tspin3
+    )
 }
 
 impl State {
@@ -187,7 +187,10 @@ impl State {
             }
         }
 
-        // TODO: implement
-        vec![]
+        movement_times
+            .into_iter()
+            .filter(|(movement_state, _)| movement_state.field_piece.is_locked)
+            .map(|(movement_state, time)| self.next_state(movement_state, time))
+            .collect()
     }
 }

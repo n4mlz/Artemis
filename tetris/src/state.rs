@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::{BinaryHeap, HashMap, VecDeque};
 
 use crate::*;
 
@@ -40,7 +40,7 @@ pub enum PlacementKind {
 
 impl State {
     // TODO: implement
-    // MEMO: dijkstra's algorithm
+    // dijkstra's algorithm
     pub fn legal_actions(&self) -> Vec<State> {
         if self.next_pieces.is_empty() {
             return vec![];
@@ -54,10 +54,53 @@ impl State {
             new_next_pieces,
         );
 
-        let mut queue = VecDeque::new();
-        queue.push_back(initial_movment_state);
+        // priority queue
+        let mut queue = BinaryHeap::new();
+        let mut movement_times = HashMap::new();
 
-        let mut movements = HashSet::new();
-        movements.insert(initial_movment_state);
+        queue.push(MovementWithTime {
+            movement_state: initial_movment_state.clone(),
+            time: 0,
+        });
+        movement_times.insert(initial_movment_state.clone(), 0);
+
+        if let Some(held_movement_with_time) = initial_movment_state.hold() {
+            queue.push(held_movement_with_time.clone());
+            movement_times.insert(
+                held_movement_with_time.movement_state,
+                held_movement_with_time.time,
+            );
+        };
+
+        while let Some(MovementWithTime {
+            movement_state: current_movement_state,
+            time: current_time,
+        }) = queue.pop()
+        {
+            if let Some(best_time) = movement_times.get(&current_movement_state) {
+                if current_time > *best_time {
+                    continue;
+                }
+            };
+
+            for next_movement in self.board.legal_moves(current_movement_state) {
+                let next_movement_state = next_movement.movement_state;
+                let next_time = current_time + next_movement.time;
+
+                if let Some(best_time) = movement_times.get(&next_movement_state) {
+                    if next_time >= *best_time {
+                        continue;
+                    }
+                }
+
+                movement_times.insert(next_movement_state.clone(), next_time);
+                queue.push(MovementWithTime {
+                    movement_state: next_movement_state,
+                    time: next_time,
+                });
+            }
+        }
+
+        vec![]
     }
 }

@@ -11,7 +11,6 @@ pub struct MovementState {
     movements_history: Vec<PieceMovement>,
     next_pieces: VecDeque<Piece>,
     has_held: bool,
-    is_locked: bool,
 }
 
 impl MovementState {
@@ -26,7 +25,6 @@ impl MovementState {
             next_pieces,
             movements_history: vec![],
             has_held: false,
-            is_locked: false,
         }
     }
 
@@ -44,7 +42,6 @@ impl MovementState {
             next_pieces: self.next_pieces.clone(),
             movements_history: new_movements_history,
             has_held: self.has_held,
-            is_locked: self.is_locked,
         }
     }
 
@@ -62,7 +59,6 @@ impl MovementState {
             next_pieces: self.next_pieces.clone(),
             movements_history: new_movements_history,
             has_held: self.has_held,
-            is_locked: self.is_locked,
         }
     }
 
@@ -79,7 +75,6 @@ impl MovementState {
                     next_pieces: self.next_pieces.clone(),
                     movements_history: vec![PieceMovement::Hold],
                     has_held: true,
-                    is_locked: false,
                 },
                 time: DEFAULT_MOVEMENT_TIME.hold,
             }),
@@ -98,7 +93,6 @@ impl MovementState {
                         next_pieces: new_next_pieces,
                         movements_history: vec![PieceMovement::Hold],
                         has_held: true,
-                        is_locked: false,
                     },
                     time: DEFAULT_MOVEMENT_TIME.hold,
                 })
@@ -135,6 +129,7 @@ pub trait FieldCells {
     fn occupied(&self, x: i32, y: i32) -> bool;
     fn attempt(&self, field_piece: FieldPiece) -> bool;
     fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementWithTime>;
+    fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind);
 }
 
 impl FieldCells for Board {
@@ -150,7 +145,7 @@ impl FieldCells for Board {
     }
 
     fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementWithTime> {
-        if movement_state.is_locked {
+        if movement_state.field_piece.is_locked {
             return vec![];
         }
 
@@ -214,7 +209,7 @@ impl FieldCells for Board {
                     }
                     let mut new_movement_state =
                         movement_state.next_movement_state(new_field_piece, piece_movement);
-                    new_movement_state.is_locked = true;
+                    new_movement_state.field_piece.is_locked = true;
                     result.push(MovementWithTime {
                         movement_state: new_movement_state,
                         time: DEFAULT_MOVEMENT_TIME.hard_drop,
@@ -251,5 +246,15 @@ impl FieldCells for Board {
         }
 
         result
+    }
+
+    fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind) {
+        let mut placed_board = *self; // copy
+        for &(x, y) in field_piece.cells().iter() {
+            placed_board[y as usize] |= row_x(x);
+        }
+
+        // TODO: implement
+        (placed_board, PlacementKind::None)
     }
 }

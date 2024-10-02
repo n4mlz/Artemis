@@ -114,6 +114,8 @@ impl PieceState {
 pub struct FieldPiece {
     pub piece_state: PieceState,
     pub position: Position,
+    pub is_srs: bool,
+    pub is_locked: bool,
 }
 
 impl FieldPiece {
@@ -124,6 +126,8 @@ impl FieldPiece {
                 rotation: RotationState::North,
             },
             position: piece.initial_position(),
+            is_srs: false,
+            is_locked: false,
         }
     }
 

@@ -18,7 +18,7 @@ pub struct LastAction {
     pub combo: u32,
     pub perfect_clear: bool,
     pub garbage_sent: u32,
-    pub time: u32,
+    pub time: Time,
     pub piece_movements: Vec<PieceMovement>,
 }
 

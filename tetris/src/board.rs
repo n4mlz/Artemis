@@ -2,6 +2,8 @@ use std::collections::VecDeque;
 
 use crate::*;
 
+pub type Time = u32;
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct MovementState {
     field_piece: FieldPiece,
@@ -10,7 +12,6 @@ pub struct MovementState {
     next_pieces: VecDeque<Piece>,
     has_held: bool,
     is_locked: bool,
-    time: u32,
 }
 
 impl MovementState {
@@ -26,7 +27,6 @@ impl MovementState {
             movements_history: vec![],
             has_held: false,
             is_locked: false,
-            time: 0,
         }
     }
 
@@ -34,7 +34,6 @@ impl MovementState {
         &self,
         field_piece: FieldPiece,
         piece_movement: PieceMovement,
-        time: u32,
     ) -> MovementState {
         let mut new_movements_history = self.movements_history.clone();
         new_movements_history.push(piece_movement);
@@ -46,7 +45,6 @@ impl MovementState {
             movements_history: new_movements_history,
             has_held: self.has_held,
             is_locked: self.is_locked,
-            time: self.time + time,
         }
     }
 
@@ -54,7 +52,6 @@ impl MovementState {
         &self,
         field_piece: FieldPiece,
         movements: Vec<PieceMovement>,
-        time: u32,
     ) -> MovementState {
         let mut new_movements_history = self.movements_history.clone();
         new_movements_history.extend(movements);
@@ -66,42 +63,62 @@ impl MovementState {
             movements_history: new_movements_history,
             has_held: self.has_held,
             is_locked: self.is_locked,
-            time: self.time + time,
         }
     }
 
-    pub fn hold(&self) -> Option<MovementState> {
-        if self.has_held || !self.movements_history.is_empty() || self.time > 0 {
+    pub fn hold(&self) -> Option<MovementWithTime> {
+        if self.has_held || !self.movements_history.is_empty() {
             return None;
         }
 
         match self.hold_piece {
-            Some(hold_piece) => Some(MovementState {
-                field_piece: FieldPiece::new_from_piece(hold_piece),
-                hold_piece: Some(self.field_piece.piece_state.piece),
-                next_pieces: self.next_pieces.clone(),
-                movements_history: vec![PieceMovement::Hold],
-                has_held: true,
-                is_locked: false,
-                time: DEFAULT_MOVEMENT_TIME.hold,
-            }),
+            Some(hold_piece) => Some(MovementWithTime(
+                MovementState {
+                    field_piece: FieldPiece::new_from_piece(hold_piece),
+                    hold_piece: Some(self.field_piece.piece_state.piece),
+                    next_pieces: self.next_pieces.clone(),
+                    movements_history: vec![PieceMovement::Hold],
+                    has_held: true,
+                    is_locked: false,
+                },
+                DEFAULT_MOVEMENT_TIME.hold,
+            )),
 
             None => {
                 if self.next_pieces.is_empty() {
                     return None;
                 }
                 let mut new_next_pieces = self.next_pieces.clone();
-                Some(MovementState {
-                    field_piece: FieldPiece::new_from_piece(new_next_pieces.pop_front().unwrap()),
-                    hold_piece: Some(self.field_piece.piece_state.piece),
-                    next_pieces: new_next_pieces,
-                    movements_history: vec![PieceMovement::Hold],
-                    has_held: true,
-                    is_locked: false,
-                    time: DEFAULT_MOVEMENT_TIME.hold,
-                })
+                Some(MovementWithTime(
+                    MovementState {
+                        field_piece: FieldPiece::new_from_piece(
+                            new_next_pieces.pop_front().unwrap(),
+                        ),
+                        hold_piece: Some(self.field_piece.piece_state.piece),
+                        next_pieces: new_next_pieces,
+                        movements_history: vec![PieceMovement::Hold],
+                        has_held: true,
+                        is_locked: false,
+                    },
+                    DEFAULT_MOVEMENT_TIME.hold,
+                ))
             }
         }
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+struct MovementWithTime(MovementState, Time);
+
+impl Ord for MovementWithTime {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.1.cmp(&other.1)
+    }
+}
+
+impl PartialOrd for MovementWithTime {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -114,7 +131,7 @@ pub type Board = [u16; 40];
 pub trait FieldCells {
     fn occupied(&self, x: i32, y: i32) -> bool;
     fn attempt(&self, field_piece: FieldPiece) -> bool;
-    fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementState>;
+    fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementWithTime>;
 }
 
 impl FieldCells for Board {
@@ -129,7 +146,7 @@ impl FieldCells for Board {
             .all(|&(x, y)| !self.occupied(x, y))
     }
 
-    fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementState> {
+    fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementWithTime> {
         if movement_state.is_locked {
             return vec![];
         }
@@ -149,9 +166,8 @@ impl FieldCells for Board {
                 PieceMovement::MoveLeft => {
                     let new_field_piece = movement_state.field_piece.move_by(-1, 0);
                     if self.attempt(new_field_piece) {
-                        result.push(movement_state.next_movement_state(
-                            new_field_piece,
-                            piece_movement,
+                        result.push(MovementWithTime(
+                            movement_state.next_movement_state(new_field_piece, piece_movement),
                             DEFAULT_MOVEMENT_TIME.move_one,
                         ));
                     }
@@ -160,9 +176,8 @@ impl FieldCells for Board {
                 PieceMovement::MoveRight => {
                     let new_field_piece = movement_state.field_piece.move_by(1, 0);
                     if self.attempt(new_field_piece) {
-                        result.push(movement_state.next_movement_state(
-                            new_field_piece,
-                            piece_movement,
+                        result.push(MovementWithTime(
+                            movement_state.next_movement_state(new_field_piece, piece_movement),
                             DEFAULT_MOVEMENT_TIME.move_one,
                         ));
                     }
@@ -177,9 +192,11 @@ impl FieldCells for Board {
                         count += 1;
                     }
                     if count > 0 {
-                        result.push(movement_state.next_movement_state_with_movements(
-                            new_field_piece,
-                            vec![piece_movement; count as usize],
+                        result.push(MovementWithTime(
+                            movement_state.next_movement_state_with_movements(
+                                new_field_piece,
+                                vec![piece_movement; count as usize],
+                            ),
                             DEFAULT_MOVEMENT_TIME.move_one * count,
                         ));
                     }
@@ -190,24 +207,23 @@ impl FieldCells for Board {
                     while self.attempt(new_field_piece.move_by(0, -1)) {
                         new_field_piece = new_field_piece.move_by(0, -1);
                     }
-                    let mut new_movement_state = movement_state.next_movement_state(
-                        new_field_piece,
-                        piece_movement,
-                        DEFAULT_MOVEMENT_TIME.hard_drop,
-                    );
+                    let mut new_movement_state =
+                        movement_state.next_movement_state(new_field_piece, piece_movement);
                     new_movement_state.is_locked = true;
-                    result.push(new_movement_state);
+                    result.push(MovementWithTime(
+                        new_movement_state,
+                        DEFAULT_MOVEMENT_TIME.hard_drop,
+                    ));
                 }
 
                 // TODO: SRS
                 PieceMovement::RotateLeft => {
                     let new_field_piece = movement_state.field_piece.rotate_left();
                     if self.attempt(new_field_piece) {
-                        result.push(movement_state.next_movement_state(
-                            new_field_piece,
-                            piece_movement,
+                        result.push(MovementWithTime(
+                            movement_state.next_movement_state(new_field_piece, piece_movement),
                             DEFAULT_MOVEMENT_TIME.rotate,
-                        ))
+                        ));
                     }
                 }
 
@@ -215,11 +231,10 @@ impl FieldCells for Board {
                 PieceMovement::RotateRight => {
                     let new_field_piece = movement_state.field_piece.rotate_right();
                     if self.attempt(new_field_piece) {
-                        result.push(movement_state.next_movement_state(
-                            new_field_piece,
-                            piece_movement,
+                        result.push(MovementWithTime(
+                            movement_state.next_movement_state(new_field_piece, piece_movement),
                             DEFAULT_MOVEMENT_TIME.rotate,
-                        ))
+                        ));
                     }
                 }
 

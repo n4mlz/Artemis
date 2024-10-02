@@ -46,12 +46,18 @@ impl State {
             return vec![];
         }
 
-        let initial_movment_state = MovementState::new_from_piece(self.next[0]);
+        let mut new_next_pieces = self.next_pieces.clone();
+
+        let initial_movment_state = MovementState::new_from_piece(
+            new_next_pieces.pop_front().unwrap(),
+            self.hold_piece,
+            new_next_pieces,
+        );
 
         let mut queue = VecDeque::new();
-        queue.push_back(new_moving_piece);
+        queue.push_back(initial_movment_state);
 
         let mut movements = HashSet::new();
-        movements.insert(new_moving_piece);
+        movements.insert(initial_movment_state);
     }
 }

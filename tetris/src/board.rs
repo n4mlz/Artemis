@@ -249,12 +249,71 @@ impl FieldCells for Board {
     }
 
     fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind) {
-        let mut placed_board = *self; // copy
+        let mut new_board = *self; // copy
         for &(x, y) in field_piece.cells().iter() {
-            placed_board[y as usize] |= row_x(x);
+            new_board[y as usize] |= row_x(x);
         }
 
-        // TODO: implement
-        (placed_board, PlacementKind::None)
+        let mut cleared_rows = 0;
+        // reverse order to avoid shifting
+        for y in (0..40).rev() {
+            if new_board[y] == 0xffc0 {
+                cleared_rows += 1;
+            } else if cleared_rows > 0 {
+                new_board[y + cleared_rows as usize] = new_board[y];
+            }
+        }
+        for y in 0..cleared_rows {
+            new_board[y as usize] = 0;
+        }
+
+        if field_piece.piece_state.piece != Piece::T {
+            let placement_kind = match cleared_rows {
+                0 => PlacementKind::None,
+                1 => PlacementKind::Clear1,
+                2 => PlacementKind::Clear2,
+                3 => PlacementKind::Clear3,
+                4 => PlacementKind::Clear4,
+                _ => PlacementKind::None,
+            };
+
+            return (new_board, placement_kind);
+        }
+
+        match field_piece.super_rotation_state {
+            SuperRotationState::None => {
+                let placement_kind = match cleared_rows {
+                    0 => PlacementKind::None,
+                    1 => PlacementKind::Clear1,
+                    2 => PlacementKind::Clear2,
+                    3 => PlacementKind::Clear3,
+                    4 => PlacementKind::Clear4,
+                    _ => PlacementKind::None,
+                };
+
+                (new_board, placement_kind)
+            }
+            SuperRotationState::Mini => {
+                let placement_kind = match cleared_rows {
+                    0 => PlacementKind::MiniTspin,
+                    1 => PlacementKind::MiniTspin1,
+                    2 => PlacementKind::MiniTspin2,
+                    _ => PlacementKind::MiniTspin,
+                };
+
+                (new_board, placement_kind)
+            }
+            SuperRotationState::Normal => {
+                let placement_kind = match cleared_rows {
+                    0 => PlacementKind::Tspin,
+                    1 => PlacementKind::Tspin1,
+                    2 => PlacementKind::Tspin2,
+                    3 => PlacementKind::Tspin3,
+                    _ => PlacementKind::Tspin,
+                };
+
+                (new_board, placement_kind)
+            }
+        }
     }
 }

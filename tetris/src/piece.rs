@@ -111,10 +111,17 @@ impl PieceState {
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum SuperRotationState {
+    None,
+    Mini, // T-spin only
+    Normal,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct FieldPiece {
     pub piece_state: PieceState,
     pub position: Position,
-    pub is_srs: bool,
+    pub super_rotation_state: SuperRotationState,
     pub is_locked: bool,
 }
 
@@ -126,7 +133,7 @@ impl FieldPiece {
                 rotation: RotationState::North,
             },
             position: piece.initial_position(),
-            is_srs: false,
+            super_rotation_state: SuperRotationState::None,
             is_locked: false,
         }
     }

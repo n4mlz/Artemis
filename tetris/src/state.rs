@@ -152,34 +152,26 @@ impl State {
         let mut queue = BinaryHeap::new();
         let mut movement_times = HashMap::new();
 
-        queue.push(MovementWithTime {
-            movement_state: initial_movment_state.clone(),
-            time: 0,
-        });
+        queue.push(initial_movment_state.clone());
         movement_times.insert(initial_movment_state.clone(), 0);
 
-        if let Some(held_movement_with_time) = initial_movment_state.hold() {
-            queue.push(held_movement_with_time.clone());
-            movement_times.insert(
-                held_movement_with_time.movement_state,
-                held_movement_with_time.time,
-            );
+        if let Some(held_movement_state) = initial_movment_state.hold() {
+            let held_movement_time = held_movement_state.time;
+            queue.push(held_movement_state.clone());
+            movement_times.insert(held_movement_state, held_movement_time);
         };
 
-        while let Some(MovementWithTime {
-            movement_state: current_movement_state,
-            time: current_time,
-        }) = queue.pop()
-        {
+        while let Some(current_movement_state) = queue.pop() {
+            let current_movement_time = current_movement_state.time;
+
             if let Some(best_time) = movement_times.get(&current_movement_state) {
-                if current_time > *best_time {
+                if current_movement_time > *best_time {
                     continue;
                 }
             };
 
-            for next_movement in self.board.legal_moves(current_movement_state) {
-                let next_movement_state = next_movement.movement_state;
-                let next_time = current_time + next_movement.time;
+            for next_movement_state in self.board.legal_moves(current_movement_state) {
+                let next_time = current_movement_time + next_movement_state.time;
 
                 if let Some(best_time) = movement_times.get(&next_movement_state) {
                     if next_time >= *best_time {
@@ -188,10 +180,7 @@ impl State {
                 }
 
                 movement_times.insert(next_movement_state.clone(), next_time);
-                queue.push(MovementWithTime {
-                    movement_state: next_movement_state,
-                    time: next_time,
-                });
+                queue.push(next_movement_state);
             }
         }
 

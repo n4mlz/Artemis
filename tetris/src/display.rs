@@ -94,6 +94,9 @@ fn write_one_of_next_pieces(f: &mut fmt::Formatter, piece: Piece, idx: i32) -> f
 
 fn write_next_pieces(f: &mut fmt::Formatter, next_pieces: &VecDeque<Piece>) -> fmt::Result {
     for (idx, piece) in next_pieces.iter().enumerate() {
+        if idx >= 5 {
+            break;
+        }
         write_one_of_next_pieces(f, *piece, idx as i32)?;
     }
 

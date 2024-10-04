@@ -3,6 +3,7 @@ use rand::{seq::SliceRandom, thread_rng};
 use std::collections::{BinaryHeap, HashMap, VecDeque};
 use strum::IntoEnumIterator;
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct State {
     pub board: Board,
     pub current_piece: Option<Piece>,
@@ -152,13 +153,19 @@ impl State {
         let mut queue = BinaryHeap::new();
         let mut movement_times = HashMap::new();
 
+        if !self.board.attempt(initial_movment_state.field_piece) {
+            return vec![];
+        }
+
         queue.push(initial_movment_state.clone());
         movement_times.insert(initial_movment_state.clone(), 0);
 
         if let Some(held_movement_state) = initial_movment_state.hold() {
-            let held_movement_time = held_movement_state.time;
-            queue.push(held_movement_state.clone());
-            movement_times.insert(held_movement_state, held_movement_time);
+            if self.board.attempt(held_movement_state.field_piece) {
+                let held_movement_time = held_movement_state.time;
+                queue.push(held_movement_state.clone());
+                movement_times.insert(held_movement_state, held_movement_time);
+            }
         };
 
         while let Some(current_movement_state) = queue.pop() {

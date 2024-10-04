@@ -209,8 +209,8 @@ impl FieldCells for Board {
                 PieceMovement::SoftDrop => {
                     let mut new_field_piece = movement_state.field_piece;
                     let mut count = 0;
-                    while self.attempt(new_field_piece.move_by(0, -1)) {
-                        new_field_piece = new_field_piece.move_by(0, -1);
+                    while self.attempt(new_field_piece.move_by(0, 1)) {
+                        new_field_piece = new_field_piece.move_by(0, 1);
                         count += 1;
                     }
                     if count > 0 {
@@ -224,8 +224,8 @@ impl FieldCells for Board {
 
                 PieceMovement::HardDrop => {
                     let mut new_field_piece = movement_state.field_piece;
-                    while self.attempt(new_field_piece.move_by(0, -1)) {
-                        new_field_piece = new_field_piece.move_by(0, -1);
+                    while self.attempt(new_field_piece.move_by(0, 1)) {
+                        new_field_piece = new_field_piece.move_by(0, 1);
                     }
                     let mut new_movement_state = movement_state.next_movement_state(
                         new_field_piece,

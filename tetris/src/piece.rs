@@ -1,7 +1,9 @@
+use strum::EnumIter;
+
 type Position = (i32, i32);
 
 // TODO: put in order
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, EnumIter)]
 pub enum Piece {
     S,
     Z,

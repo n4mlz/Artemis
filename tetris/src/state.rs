@@ -1,7 +1,9 @@
-use std::collections::{BinaryHeap, HashMap, VecDeque};
-
 use crate::*;
+use rand::{seq::SliceRandom, thread_rng};
+use std::collections::{BinaryHeap, HashMap, VecDeque};
+use strum::IntoEnumIterator;
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct State {
     pub board: Board,
     pub current_piece: Option<Piece>,
@@ -47,6 +49,13 @@ fn is_b2b_enabled(placement_kind: PlacementKind) -> bool {
 }
 
 impl State {
+    pub fn extend_next_pieces(&mut self) {
+        let mut new_next_pieces: Vec<_> = Piece::iter().collect();
+        let mut rng = thread_rng();
+        new_next_pieces.shuffle(&mut rng);
+        self.next_pieces.extend(new_next_pieces);
+    }
+
     fn next_state(&self, mut movement_state: MovementState, time: Time) -> State {
         use PlacementKind::*;
 
@@ -144,34 +153,32 @@ impl State {
         let mut queue = BinaryHeap::new();
         let mut movement_times = HashMap::new();
 
-        queue.push(MovementWithTime {
-            movement_state: initial_movment_state.clone(),
-            time: 0,
-        });
+        if !self.board.attempt(initial_movment_state.field_piece) {
+            return vec![];
+        }
+
+        queue.push(initial_movment_state.clone());
         movement_times.insert(initial_movment_state.clone(), 0);
 
-        if let Some(held_movement_with_time) = initial_movment_state.hold() {
-            queue.push(held_movement_with_time.clone());
-            movement_times.insert(
-                held_movement_with_time.movement_state,
-                held_movement_with_time.time,
-            );
+        if let Some(held_movement_state) = initial_movment_state.hold() {
+            if self.board.attempt(held_movement_state.field_piece) {
+                let held_movement_time = held_movement_state.time;
+                queue.push(held_movement_state.clone());
+                movement_times.insert(held_movement_state, held_movement_time);
+            }
         };
 
-        while let Some(MovementWithTime {
-            movement_state: current_movement_state,
-            time: current_time,
-        }) = queue.pop()
-        {
+        while let Some(current_movement_state) = queue.pop() {
+            let current_movement_time = current_movement_state.time;
+
             if let Some(best_time) = movement_times.get(&current_movement_state) {
-                if current_time > *best_time {
+                if current_movement_time > *best_time {
                     continue;
                 }
             };
 
-            for next_movement in self.board.legal_moves(current_movement_state) {
-                let next_movement_state = next_movement.movement_state;
-                let next_time = current_time + next_movement.time;
+            for next_movement_state in self.board.legal_moves(current_movement_state) {
+                let next_time = current_movement_time + next_movement_state.time;
 
                 if let Some(best_time) = movement_times.get(&next_movement_state) {
                     if next_time >= *best_time {
@@ -180,10 +187,7 @@ impl State {
                 }
 
                 movement_times.insert(next_movement_state.clone(), next_time);
-                queue.push(MovementWithTime {
-                    movement_state: next_movement_state,
-                    time: next_time,
-                });
+                queue.push(next_movement_state);
             }
         }
 

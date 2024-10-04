@@ -1,4 +1,5 @@
 mod board;
+mod display;
 mod piece;
 mod rule;
 mod state;

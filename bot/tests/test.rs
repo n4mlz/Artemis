@@ -30,7 +30,7 @@ fn search_halting() {
 
 // this is not a test, but for checking the display
 #[test]
-fn random_playout() {
+fn bot_play() {
     let mut next_pieces: Vec<_> = tetris::Piece::iter().collect();
     let mut rng = thread_rng();
     next_pieces.shuffle(&mut rng);

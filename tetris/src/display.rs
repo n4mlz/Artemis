@@ -1,5 +1,3 @@
-extern crate termion;
-
 use crate::*;
 use std::{collections::VecDeque, fmt};
 use termion::cursor;

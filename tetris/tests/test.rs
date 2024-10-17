@@ -2,7 +2,6 @@ use rand::{seq::SliceRandom, thread_rng};
 use std::{
     collections::VecDeque,
     hash::{DefaultHasher, Hash, Hasher},
-    thread::sleep,
 };
 use strum::IntoEnumIterator;
 use tetris::FieldCells;
@@ -37,7 +36,6 @@ fn random_play() {
         } else {
             break;
         }
-        sleep(std::time::Duration::from_millis(50));
     }
 }
 

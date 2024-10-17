@@ -35,8 +35,31 @@ impl Node<'_> {
         }
     }
 
-    fn search(&mut self) -> (Reward, Value) {
-        // TODO: implement
-        (0, 0)
+    fn search(&mut self) -> Score {
+        static GAMMA: f64 = 0.95;
+
+        if self.n > 1 && self.children.is_empty() {
+            return self.reward + self.value;
+        }
+
+        let updated_child_score = if self.children.is_empty() {
+            self.expand();
+            self.children
+                .iter()
+                .map(|child| child.reward + child.value)
+                .max()
+                .unwrap_or(self.reward + self.value)
+        } else {
+            let highest_child = self
+                .children
+                .iter_mut()
+                .max_by_key(|child| child.ucb(self.n))
+                .unwrap();
+            highest_child.search()
+        };
+
+        self.value = (self.value + (GAMMA * updated_child_score as f64) as Value) / 2;
+        self.n += 1;
+        self.reward + self.value
     }
 }

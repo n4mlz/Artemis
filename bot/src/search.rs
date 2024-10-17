@@ -20,12 +20,23 @@ impl Node<'_> {
         self.reward + self.value + (((C * log_parent_n) as f64 / self.n as f64).sqrt()) as i32
     }
 
+    fn expand(&mut self) {
+        let legal_actions = self.state.legal_actions();
+        for action in legal_actions {
+            let (reward, value) = self.evaluator.evaluate(&action);
+            self.children.push(Node {
+                evaluator: self.evaluator,
+                state: action,
+                reward,
+                value,
+                n: 1,
+                children: vec![],
+            });
+        }
+    }
+
     fn search(&mut self) -> (Reward, Value) {
         // TODO: implement
         (0, 0)
-    }
-
-    fn expand(&mut self) {
-        // TODO: implement
     }
 }

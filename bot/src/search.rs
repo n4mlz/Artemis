@@ -2,8 +2,8 @@ use crate::*;
 use tetris::State;
 
 pub struct Node<'a> {
+    pub state: State,
     evaluator: &'a Evaluator,
-    state: State,
     reward: Reward,
     value: Value,
     n: u32,

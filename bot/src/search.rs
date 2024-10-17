@@ -6,7 +6,7 @@ pub struct Node<'a> {
     evaluator: &'a Evaluator,
     reward: Reward,
     value: Value,
-    n: u32,
+    pub n: u32,
     children: Vec<Node<'a>>,
 }
 

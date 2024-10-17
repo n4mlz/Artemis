@@ -2,6 +2,6 @@ mod bot;
 mod evaluate;
 mod search;
 
-use bot::*;
-use evaluate::*;
-use search::*;
+pub use bot::*;
+pub use evaluate::*;
+pub use search::*;

@@ -2,7 +2,7 @@ use crate::*;
 use tetris::State;
 
 pub struct Bot {
-    evaluator: Evaluator,
+    pub evaluator: Evaluator,
 }
 
 impl Bot {

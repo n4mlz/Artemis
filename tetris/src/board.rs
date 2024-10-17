@@ -1,5 +1,6 @@
 use crate::*;
 use std::{collections::VecDeque, hash::Hash};
+
 pub type Time = u32;
 
 #[derive(Debug, Clone)]

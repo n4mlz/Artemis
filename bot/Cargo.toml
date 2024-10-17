@@ -1,0 +1,10 @@
+[package]
+name = "bot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = "0.8.5"
+strum = { version = "0.26.3" }
+termion = "4.0.2"
+tetris = { path = "../tetris" }

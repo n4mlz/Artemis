@@ -1,16 +1,14 @@
-use crate::tetris::FieldCells;
 use rand::{seq::SliceRandom, thread_rng};
 use std::{
     collections::VecDeque,
     hash::{DefaultHasher, Hash, Hasher},
-    thread::sleep,
 };
 use strum::IntoEnumIterator;
-extern crate tetris;
+use tetris::FieldCells;
 
 // this is not a test, but for checking the display
 #[test]
-fn random_playout() {
+fn random_play() {
     let mut next_pieces: Vec<_> = tetris::Piece::iter().collect();
     let mut rng = thread_rng();
     next_pieces.shuffle(&mut rng);
@@ -38,7 +36,6 @@ fn random_playout() {
         } else {
             break;
         }
-        sleep(std::time::Duration::from_millis(50));
     }
 }
 

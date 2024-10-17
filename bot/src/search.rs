@@ -11,9 +11,13 @@ pub struct Node<'a> {
 }
 
 impl Node<'_> {
-    fn ucb(parent_n: u32) -> Score {
-        // TODO: implement
-        0
+    fn ucb(&self, parent_n: u32) -> Score {
+        static C: u32 = 100;
+
+        let log_parent_n = 32 - parent_n.leading_zeros();
+
+        // TODO: make it a lightweight calculation
+        self.reward + self.value + (((C * log_parent_n) as f64 / self.n as f64).sqrt()) as i32
     }
 
     fn search(&mut self) -> (Reward, Value) {

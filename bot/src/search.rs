@@ -11,13 +11,14 @@ pub struct Node<'a> {
 }
 
 impl Node<'_> {
-    fn ucb(parent_n: u32) -> evaluate::Score {
+    fn ucb(parent_n: u32) -> Score {
         // TODO: implement
         0
     }
 
-    fn search(&mut self) {
+    fn search(&mut self) -> (Reward, Value) {
         // TODO: implement
+        (0, 0)
     }
 
     fn expand(&mut self) {

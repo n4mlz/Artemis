@@ -1,4 +1,3 @@
-use crate::tetris::FieldCells;
 use rand::{seq::SliceRandom, thread_rng};
 use std::{
     collections::VecDeque,
@@ -6,7 +5,7 @@ use std::{
     thread::sleep,
 };
 use strum::IntoEnumIterator;
-extern crate tetris;
+use tetris::FieldCells;
 
 // this is not a test, but for checking the display
 #[test]

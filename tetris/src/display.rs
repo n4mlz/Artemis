@@ -4,7 +4,6 @@ use termion::cursor;
 
 impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // TODO: implement
         write_board(f, &self.board)?;
         write_current_piece(f, self.current_piece)?;
         write_next_pieces(f, &self.next_pieces)?;

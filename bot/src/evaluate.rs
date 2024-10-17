@@ -2,8 +2,9 @@ use crate::*;
 use rand::Rng;
 use tetris::State;
 
-pub type Reward = i32;
-pub type Value = i32;
+pub type Score = i32;
+pub type Reward = Score;
+pub type Value = Score;
 
 pub struct Evaluator {
     // TODO: add some parameters

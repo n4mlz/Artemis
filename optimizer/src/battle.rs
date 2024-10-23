@@ -24,6 +24,9 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot) -> bool {
 
             if let Some(new_state) = p1.get_move(p1_state.clone()) {
                 p1_state = new_state;
+                if p1_state.next_pieces.len() < 8 {
+                    p1_state.extend_next_pieces();
+                }
             } else {
                 return false;
             }
@@ -42,6 +45,9 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot) -> bool {
 
             if let Some(new_state) = p2.get_move(p2_state.clone()) {
                 p2_state = new_state;
+                if p2_state.next_pieces.len() < 8 {
+                    p2_state.extend_next_pieces();
+                }
             } else {
                 return true;
             }

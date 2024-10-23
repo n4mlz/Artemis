@@ -3,25 +3,12 @@ use std::{
     collections::VecDeque,
     hash::{DefaultHasher, Hash, Hasher},
 };
-use strum::IntoEnumIterator;
-use tetris::FieldCells;
 
 // this is not a test, but for checking the display
 #[test]
 fn random_play() {
-    let mut next_pieces: Vec<_> = tetris::Piece::iter().collect();
     let mut rng = thread_rng();
-    next_pieces.shuffle(&mut rng);
-    let mut next_pieces = VecDeque::from(next_pieces);
-
-    let mut current_state = tetris::State {
-        board: tetris::Board::new(),
-        current_piece: Some(next_pieces.pop_front().unwrap()),
-        hold_piece: None,
-        next_pieces,
-        b2b: false,
-        last_action: None,
-    };
+    let mut current_state = tetris::State::new_random_state();
 
     loop {
         println!("{}", termion::clear::All);

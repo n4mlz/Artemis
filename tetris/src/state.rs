@@ -49,6 +49,22 @@ fn is_b2b_enabled(placement_kind: PlacementKind) -> bool {
 }
 
 impl State {
+    pub fn new_random_state() -> Self {
+        let mut next_pieces: Vec<_> = Piece::iter().collect();
+        let mut rng = thread_rng();
+        next_pieces.shuffle(&mut rng);
+        let mut next_pieces = VecDeque::from(next_pieces);
+
+        State {
+            board: Board::new(),
+            current_piece: Some(next_pieces.pop_front().unwrap()),
+            hold_piece: None,
+            next_pieces,
+            b2b: false,
+            last_action: None,
+        }
+    }
+
     pub fn extend_next_pieces(&mut self) {
         let mut new_next_pieces: Vec<_> = Piece::iter().collect();
         let mut rng = thread_rng();

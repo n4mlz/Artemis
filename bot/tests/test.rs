@@ -23,7 +23,7 @@ fn search_halting() {
         evaluator: bot::Evaluator {},
     };
 
-    let next_state = bot.search(state.clone()).unwrap();
+    let next_state = bot.decide_next_state(state.clone()).unwrap();
 
     assert!(next_state != state);
 }

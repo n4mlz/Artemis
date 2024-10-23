@@ -72,6 +72,10 @@ impl State {
         self.next_pieces.extend(new_next_pieces);
     }
 
+    pub fn receive_garbage(&mut self, garbage: u32) {
+        self.board = self.board.receive_garbage(garbage);
+    }
+
     pub fn is_dead(&self) -> bool {
         let initial_movment_state = MovementState::new_from_piece(
             self.current_piece.unwrap(),

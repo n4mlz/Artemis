@@ -26,6 +26,34 @@ fn random_play() {
     }
 }
 
+// this is not a test, but for checking garbage
+// place 3 pieces and receive 5 garbage
+#[test]
+fn receive_garbage() {
+    let mut rng = thread_rng();
+    let mut current_state = tetris::State::new_random_state();
+
+    for _ in 0..3 {
+        println!("{}", termion::clear::All);
+        println!("{}", current_state);
+
+        let legal_actions = current_state.legal_actions();
+        if let Some(next_state) = legal_actions.choose(&mut rng) {
+            current_state = next_state.clone();
+            if current_state.next_pieces.len() < 8 {
+                current_state.extend_next_pieces();
+            }
+        } else {
+            break;
+        }
+    }
+
+    current_state.receive_garbage(5);
+
+    println!("{}", termion::clear::All);
+    println!("{}", current_state);
+}
+
 #[test]
 fn hash_of_movement_state() {
     let left_movement_state = tetris::MovementState::new_from_piece(

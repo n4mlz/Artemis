@@ -1,4 +1,5 @@
 use crate::*;
+use rand::{seq::IteratorRandom, thread_rng, Rng};
 use std::{collections::VecDeque, hash::Hash};
 
 pub type Time = u32;
@@ -145,6 +146,7 @@ pub trait FieldCells {
     fn attempt(&self, field_piece: FieldPiece) -> bool;
     fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementState>;
     fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind);
+    fn receive_garbage(&self, garbage: u32) -> Board;
 }
 
 impl FieldCells for Board {
@@ -338,5 +340,34 @@ impl FieldCells for Board {
                 (new_board, placement_kind)
             }
         }
+    }
+
+    fn receive_garbage(&self, garbage: u32) -> Board {
+        let mut rng = thread_rng();
+        let mut new_board = *self;
+        let mut hole_positions = vec![rng.gen_range(0..10)];
+
+        for _ in 1..garbage as usize {
+            if rng.gen_range(0.0..1.0) < SAME_HOLE_POSITION_RATE {
+                hole_positions.push(*hole_positions.last().unwrap());
+            } else {
+                hole_positions.push(
+                    (0..10)
+                        .filter(|&x| x != *hole_positions.last().unwrap())
+                        .choose(&mut rng)
+                        .unwrap(),
+                );
+            }
+        }
+
+        for y in 0..40 {
+            if y < 40 - garbage as usize {
+                new_board[y] = new_board[y + garbage as usize];
+            } else {
+                new_board[y] = 0xffc0 & !row_x(hole_positions.pop().unwrap());
+            }
+        }
+
+        new_board
     }
 }

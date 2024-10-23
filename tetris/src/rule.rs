@@ -27,6 +27,9 @@ pub const DEFAULT_ACTION_TIME: ActionTime = ActionTime {
     perfect_clear: 100,
 };
 
+// TODO: make the value correct
+pub const SAME_HOLE_POSITION_RATE: f64 = 0.7;
+
 pub fn base_attack(placement_kind: PlacementKind) -> u32 {
     use PlacementKind::*;
     match placement_kind {

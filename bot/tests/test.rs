@@ -53,7 +53,7 @@ fn bot_play() {
         println!("{}", termion::clear::All);
         println!("{}", current_state);
 
-        if let Some(next_state) = bot.search(current_state.clone()) {
+        if let Some(next_state) = bot.decide_next_state(current_state.clone()) {
             current_state = next_state.clone();
             if current_state.next_pieces.len() < 8 {
                 current_state.extend_next_pieces();

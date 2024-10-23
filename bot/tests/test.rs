@@ -6,7 +6,7 @@ fn search_halting() {
         evaluator: bot::Evaluator {},
     };
 
-    let next_state = bot.decide_next_state(state.clone()).unwrap();
+    let next_state = bot.get_move(state.clone()).unwrap();
 
     assert!(next_state != state);
 }
@@ -24,7 +24,7 @@ fn bot_play() {
         println!("{}", termion::clear::All);
         println!("{}", current_state);
 
-        if let Some(next_state) = bot.decide_next_state(current_state.clone()) {
+        if let Some(next_state) = bot.get_move(current_state.clone()) {
             current_state = next_state.clone();
             if current_state.next_pieces.len() < 8 {
                 current_state.extend_next_pieces();

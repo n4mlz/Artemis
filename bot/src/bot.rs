@@ -6,7 +6,7 @@ pub struct Bot {
 }
 
 impl Bot {
-    pub fn decide_next_state(&self, state: State) -> Option<State> {
+    pub fn get_move(&self, state: State) -> Option<State> {
         let mut root = Node::new(&self.evaluator, state);
 
         // TODO: manage by time measurement

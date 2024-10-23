@@ -72,6 +72,16 @@ impl State {
         self.next_pieces.extend(new_next_pieces);
     }
 
+    pub fn is_dead(&self) -> bool {
+        let initial_movment_state = MovementState::new_from_piece(
+            self.current_piece.unwrap(),
+            self.hold_piece,
+            self.next_pieces.clone(),
+        );
+
+        !self.board.attempt(initial_movment_state.field_piece)
+    }
+
     fn next_state(&self, mut movement_state: MovementState, time: Time) -> State {
         use PlacementKind::*;
 
@@ -155,7 +165,7 @@ impl State {
 
     // dijkstra's algorithm
     pub fn legal_actions(&self) -> Vec<State> {
-        if self.current_piece.is_none() {
+        if self.current_piece.is_none() || self.is_dead() {
             return vec![];
         }
 
@@ -168,10 +178,6 @@ impl State {
         // priority queue
         let mut queue = BinaryHeap::new();
         let mut movement_times = HashMap::new();
-
-        if !self.board.attempt(initial_movment_state.field_piece) {
-            return vec![];
-        }
 
         queue.push(initial_movment_state.clone());
         movement_times.insert(initial_movment_state.clone(), 0);

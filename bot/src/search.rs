@@ -1,6 +1,16 @@
 use crate::*;
 use tetris::State;
 
+// parameter to balance exploration and exploitation
+// a larger value increases randomness in selections
+const C: u32 = 100;
+
+// discount factor for future rewards
+const GAMMA: f64 = 0.95;
+
+// update rate for value
+const UPDATE_RATE: f64 = 0.1;
+
 pub struct Node<'a> {
     pub state: State,
     evaluator: &'a Evaluator,
@@ -25,8 +35,6 @@ impl<'a> Node<'a> {
     }
 
     fn ucb(&self, parent_n: u32) -> Score {
-        static C: u32 = 100;
-
         let log_parent_n = 32 - parent_n.leading_zeros();
 
         // TODO: make it a lightweight calculation
@@ -55,8 +63,6 @@ impl<'a> Node<'a> {
     }
 
     pub fn search(&mut self) -> Score {
-        static GAMMA: f64 = 0.95;
-
         if self.n > 1 && self.children.is_empty() {
             return self.reward + self.value;
         }
@@ -73,7 +79,8 @@ impl<'a> Node<'a> {
             best_child.search()
         };
 
-        self.value = (self.value + (GAMMA * updated_child_score as f64) as Value) / 2;
+        self.value = ((1.0 - UPDATE_RATE) * (self.value as f64)
+            + UPDATE_RATE * (GAMMA * updated_child_score as f64)) as Value;
         self.n += 1;
         self.reward + self.value
     }

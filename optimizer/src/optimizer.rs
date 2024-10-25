@@ -1,6 +1,10 @@
 use crate::*;
 use bot::Evaluator;
 use serde::{Deserialize, Serialize};
+use std::{
+    fs::File,
+    io::{Read, Write},
+};
 
 const POPULATION_SIZE: usize = 100;
 
@@ -32,13 +36,22 @@ impl Population {
         }
     }
 
-    fn save(&self, path: &str) {
-        // TODO: implement
+    fn load_or_generate(path: &str) -> Self {
+        // TODO: make sure it works correctly
+        if let Ok(mut file) = File::open(path) {
+            let mut json = String::new();
+            let _ = file.read_to_string(&mut json);
+            serde_json::from_str(&json).unwrap_or_else(|_| Self::generate())
+        } else {
+            Self::generate()
+        }
     }
 
-    fn load(path: &str) -> Self {
-        // TODO: implement
-        Self::generate()
+    fn save(&self, path: &str) {
+        // TODO: make sure it works correctly
+        let json = serde_json::to_string(self).unwrap();
+        let mut file = File::create(path).unwrap();
+        file.write_all(json.as_bytes()).unwrap();
     }
 
     fn evaluate(&mut self) {

@@ -1,11 +1,12 @@
-use crate::*;
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use tetris::State;
 
 pub type Score = i32;
 pub type Reward = Score;
 pub type Value = Score;
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Evaluator {
     // TODO: add some parameters
 }

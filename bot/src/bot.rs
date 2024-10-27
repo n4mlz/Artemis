@@ -6,6 +6,10 @@ pub struct Bot {
 }
 
 impl Bot {
+    pub fn new(evaluator: Evaluator) -> Self {
+        Self { evaluator }
+    }
+
     pub fn get_move(&self, state: State) -> Option<State> {
         let mut root = Node::new(&self.evaluator, state);
 

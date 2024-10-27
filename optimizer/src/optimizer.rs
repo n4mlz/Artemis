@@ -75,6 +75,10 @@ impl Population {
             let opponents_index = (0..POPULATION_SIZE).choose_multiple(&mut rng, MATCH_COUNT);
 
             for j in opponents_index {
+                if self.members[j].score.is_none() {
+                    self.members[j].score = Some(Score::new());
+                }
+
                 let p1 = Bot::new(self.members[i].evaluator);
                 let p2 = Bot::new(self.members[j].evaluator);
 

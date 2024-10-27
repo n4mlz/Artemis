@@ -19,7 +19,7 @@ const MATCH_COUNT: usize = 30;
 const SELECTION_SIZE: usize = 10;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-struct Population {
+pub struct Population {
     generation: u32,
     members: Vec<Member>,
 }
@@ -47,7 +47,7 @@ impl Population {
         }
     }
 
-    fn load_or_generate(path: &str) -> Self {
+    pub fn load_or_generate(path: &str) -> Self {
         // TODO: make sure it works correctly
         if let Ok(mut file) = File::open(path) {
             let mut json = String::new();
@@ -58,7 +58,7 @@ impl Population {
         }
     }
 
-    fn save(&self, path: &str) {
+    pub fn save(&self, path: &str) {
         // TODO: make sure it works correctly
         let json = serde_json::to_string(self).unwrap();
         let mut file = File::create(path).unwrap();
@@ -128,5 +128,10 @@ impl Population {
             generation: self.generation + 1,
             members: new_members,
         }
+    }
+
+    pub fn optimize(&mut self) {
+        self.evaluate();
+        *self = self.crossover();
     }
 }

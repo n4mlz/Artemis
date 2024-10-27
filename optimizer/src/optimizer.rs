@@ -27,7 +27,6 @@ pub struct Population {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 struct Member {
     evaluator: Evaluator,
-    // numerator and denominator
     score: Option<Score>,
 }
 

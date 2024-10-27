@@ -6,3 +6,7 @@ mod score;
 pub use battle::*;
 pub use mutate::*;
 pub use score::*;
+
+fn main() {
+    println!("Hello, world!");
+}

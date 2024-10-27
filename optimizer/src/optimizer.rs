@@ -101,7 +101,32 @@ impl Population {
     }
 
     fn crossover(&self) -> Self {
-        // TODO: implement
-        Self::generate()
+        // elite
+        let mut new_members: Vec<_> = self
+            .members
+            .iter()
+            .sorted_by(|a, b| {
+                let a_score = a.score.as_ref().unwrap();
+                let b_score = b.score.as_ref().unwrap();
+                a_score.cmp(b_score)
+            })
+            .take(2)
+            .cloned()
+            .collect();
+
+        // crossover
+        while new_members.len() < POPULATION_SIZE {
+            let (parent1, parent2) = self.select();
+            let evaluator = Evaluator::crossover(&parent1.evaluator, &parent2.evaluator);
+            new_members.push(Member {
+                evaluator,
+                score: None,
+            });
+        }
+
+        Population {
+            generation: self.generation + 1,
+            members: new_members,
+        }
     }
 }

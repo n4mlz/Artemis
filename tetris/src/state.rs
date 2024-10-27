@@ -49,11 +49,41 @@ fn is_b2b_enabled(placement_kind: PlacementKind) -> bool {
 }
 
 impl State {
+    pub fn new_random_state() -> Self {
+        let mut next_pieces: Vec<_> = Piece::iter().collect();
+        let mut rng = thread_rng();
+        next_pieces.shuffle(&mut rng);
+        let mut next_pieces = VecDeque::from(next_pieces);
+
+        State {
+            board: Board::new(),
+            current_piece: Some(next_pieces.pop_front().unwrap()),
+            hold_piece: None,
+            next_pieces,
+            b2b: false,
+            last_action: None,
+        }
+    }
+
     pub fn extend_next_pieces(&mut self) {
         let mut new_next_pieces: Vec<_> = Piece::iter().collect();
         let mut rng = thread_rng();
         new_next_pieces.shuffle(&mut rng);
         self.next_pieces.extend(new_next_pieces);
+    }
+
+    pub fn receive_garbage(&mut self, garbage: u32) {
+        self.board = self.board.receive_garbage(garbage);
+    }
+
+    pub fn is_dead(&self) -> bool {
+        let initial_movment_state = MovementState::new_from_piece(
+            self.current_piece.unwrap(),
+            self.hold_piece,
+            self.next_pieces.clone(),
+        );
+
+        !self.board.attempt(initial_movment_state.field_piece)
     }
 
     fn next_state(&self, mut movement_state: MovementState, time: Time) -> State {
@@ -139,7 +169,7 @@ impl State {
 
     // dijkstra's algorithm
     pub fn legal_actions(&self) -> Vec<State> {
-        if self.current_piece.is_none() {
+        if self.current_piece.is_none() || self.is_dead() {
             return vec![];
         }
 
@@ -152,10 +182,6 @@ impl State {
         // priority queue
         let mut queue = BinaryHeap::new();
         let mut movement_times = HashMap::new();
-
-        if !self.board.attempt(initial_movment_state.field_piece) {
-            return vec![];
-        }
 
         queue.push(initial_movment_state.clone());
         movement_times.insert(initial_movment_state.clone(), 0);

@@ -3,41 +3,6 @@ use std::{
     collections::VecDeque,
     hash::{DefaultHasher, Hash, Hasher},
 };
-use strum::IntoEnumIterator;
-use tetris::FieldCells;
-
-// this is not a test, but for checking the display
-#[test]
-fn random_play() {
-    let mut next_pieces: Vec<_> = tetris::Piece::iter().collect();
-    let mut rng = thread_rng();
-    next_pieces.shuffle(&mut rng);
-    let mut next_pieces = VecDeque::from(next_pieces);
-
-    let mut current_state = tetris::State {
-        board: tetris::Board::new(),
-        current_piece: Some(next_pieces.pop_front().unwrap()),
-        hold_piece: None,
-        next_pieces,
-        b2b: false,
-        last_action: None,
-    };
-
-    loop {
-        println!("{}", termion::clear::All);
-        println!("{}", current_state);
-
-        let legal_actions = current_state.legal_actions();
-        if let Some(next_state) = legal_actions.choose(&mut rng) {
-            current_state = next_state.clone();
-            if current_state.next_pieces.len() < 8 {
-                current_state.extend_next_pieces();
-            }
-        } else {
-            break;
-        }
-    }
-}
 
 #[test]
 fn hash_of_movement_state() {
@@ -72,4 +37,89 @@ fn hash_of_movement_state() {
     right_movement_state.hash(&mut right_hasher);
 
     assert_ne!(left_hasher.finish(), right_hasher.finish());
+}
+
+// this is not a test, but for checking the display
+#[test]
+fn random_play() {
+    let mut rng = thread_rng();
+    let mut current_state = tetris::State::new_random_state();
+
+    loop {
+        println!("{}", termion::clear::All);
+        println!("{}", current_state);
+
+        let legal_actions = current_state.legal_actions();
+        if let Some(next_state) = legal_actions.choose(&mut rng) {
+            current_state = next_state.clone();
+            if current_state.next_pieces.len() < 8 {
+                current_state.extend_next_pieces();
+            }
+        } else {
+            break;
+        }
+    }
+}
+
+// this is not a test, but for checking garbage
+// place 3 pieces and receive 5 garbage
+#[test]
+fn receive_garbage() {
+    let mut rng = thread_rng();
+    let mut current_state = tetris::State::new_random_state();
+
+    for _ in 0..3 {
+        println!("{}", termion::clear::All);
+        println!("{}", current_state);
+
+        let legal_actions = current_state.legal_actions();
+        if let Some(next_state) = legal_actions.choose(&mut rng) {
+            current_state = next_state.clone();
+            if current_state.next_pieces.len() < 8 {
+                current_state.extend_next_pieces();
+            }
+        } else {
+            break;
+        }
+    }
+
+    current_state.receive_garbage(5);
+
+    println!("{}", termion::clear::All);
+    println!("{}", current_state);
+}
+
+// this is not a test, but for checking the display
+#[test]
+fn display_two_states() {
+    let mut rng = thread_rng();
+    let mut p1 = tetris::State::new_random_state();
+    let mut p2 = tetris::State::new_random_state();
+
+    loop {
+        println!("{}", termion::clear::All);
+        println!("{}", tetris::PairState(p1.clone(), p2.clone()));
+
+        let legal_actions = p1.legal_actions();
+        if let Some(next_state) = legal_actions.choose(&mut rng) {
+            p1 = next_state.clone();
+            if p1.next_pieces.len() < 8 {
+                p1.extend_next_pieces();
+            }
+        } else {
+            break;
+        }
+
+        let legal_actions = p2.legal_actions();
+        if let Some(next_state) = legal_actions.choose(&mut rng) {
+            p2 = next_state.clone();
+            if p2.next_pieces.len() < 8 {
+                p2.extend_next_pieces();
+            }
+        } else {
+            break;
+        }
+
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
 }

@@ -28,7 +28,7 @@ struct Population {
 struct Member {
     evaluator: Evaluator,
     // numerator and denominator
-    score: Option<(u32, u32)>,
+    score: Option<Score>,
 }
 
 impl Population {
@@ -68,7 +68,7 @@ impl Population {
     fn evaluate(&mut self) {
         for i in 0..POPULATION_SIZE {
             if self.members[i].score.is_none() {
-                self.members[i].score = Some((0, 0));
+                self.members[i].score = Some(Score::new());
             }
 
             let mut rng = thread_rng();
@@ -78,16 +78,9 @@ impl Population {
                 let p1 = Bot::new(self.members[i].evaluator);
                 let p2 = Bot::new(self.members[j].evaluator);
 
-                let (p1_numerator, p1_denominator) = self.members[i].score.unwrap();
-                let (p2_numerator, p2_denominator) = self.members[j].score.unwrap();
-
-                if do_battle(&p1, &p2) {
-                    self.members[i].score = Some((p1_numerator + 1, p1_denominator + 1));
-                    self.members[j].score = Some((p2_numerator, p2_denominator + 1));
-                } else {
-                    self.members[i].score = Some((p1_numerator, p1_denominator + 1));
-                    self.members[j].score = Some((p2_numerator + 1, p2_denominator + 1));
-                }
+                let win = do_battle(&p1, &p2);
+                self.members[i].score.as_mut().unwrap().update(win);
+                self.members[j].score.as_mut().unwrap().update(!win);
             }
         }
     }
@@ -98,9 +91,9 @@ impl Population {
         let group = self.members.choose_multiple(&mut rng, SELECTION_SIZE);
         group
             .sorted_by(|a, b| {
-                let (a_numerator, a_denominator) = a.score.unwrap();
-                let (b_numerator, b_denominator) = b.score.unwrap();
-                (a_numerator * b_denominator).cmp(&(b_numerator * a_denominator))
+                let a_score = a.score.as_ref().unwrap();
+                let b_score = b.score.as_ref().unwrap();
+                a_score.cmp(b_score)
             })
             .take(2)
             .next_tuple()

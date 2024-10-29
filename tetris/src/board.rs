@@ -159,7 +159,7 @@ impl FieldCells for Board {
     }
 
     fn is_empty(&self) -> bool {
-        self[39] == 0
+        self[0] == 0
     }
 
     fn attempt(&self, field_piece: FieldPiece) -> bool {
@@ -212,8 +212,8 @@ impl FieldCells for Board {
                 PieceMovement::SoftDrop => {
                     let mut new_field_piece = movement_state.field_piece;
                     let mut count = 0;
-                    while self.attempt(new_field_piece.move_by(0, 1)) {
-                        new_field_piece = new_field_piece.move_by(0, 1);
+                    while self.attempt(new_field_piece.move_by(0, -1)) {
+                        new_field_piece = new_field_piece.move_by(0, -1);
                         count += 1;
                     }
                     if count > 0 {
@@ -227,8 +227,8 @@ impl FieldCells for Board {
 
                 PieceMovement::HardDrop => {
                     let mut new_field_piece = movement_state.field_piece;
-                    while self.attempt(new_field_piece.move_by(0, 1)) {
-                        new_field_piece = new_field_piece.move_by(0, 1);
+                    while self.attempt(new_field_piece.move_by(0, -1)) {
+                        new_field_piece = new_field_piece.move_by(0, -1);
                     }
                     let mut new_movement_state = movement_state.next_movement_state(
                         new_field_piece,
@@ -281,15 +281,15 @@ impl FieldCells for Board {
 
         let mut cleared_rows = 0;
         // reverse order to avoid shifting
-        for y in (0..40).rev() {
+        for y in 0..40 {
             if new_board[y] == 0x3ff {
                 cleared_rows += 1;
             } else if cleared_rows > 0 {
-                new_board[y + cleared_rows as usize] = new_board[y];
+                new_board[y - cleared_rows as usize] = new_board[y];
             }
         }
         for y in 0..cleared_rows {
-            new_board[y as usize] = 0;
+            new_board[39 - y as usize] = 0;
         }
 
         if field_piece.piece_state.piece != Piece::T {
@@ -360,9 +360,9 @@ impl FieldCells for Board {
             }
         }
 
-        for y in 0..40 {
-            if y < 40 - garbage as usize {
-                new_board[y] = new_board[y + garbage as usize];
+        for y in (0..40).rev() {
+            if y >= garbage as usize {
+                new_board[y] = new_board[y - garbage as usize];
             } else {
                 new_board[y] = 0x3ff & !row_x(hole_positions.pop().unwrap());
             }

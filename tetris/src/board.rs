@@ -134,7 +134,7 @@ impl Hash for MovementState {
 }
 
 fn row_x(x: i32) -> u16 {
-    1 << (15 - x)
+    1 << x
 }
 
 pub type Board = [u16; 40];
@@ -282,7 +282,7 @@ impl FieldCells for Board {
         let mut cleared_rows = 0;
         // reverse order to avoid shifting
         for y in (0..40).rev() {
-            if new_board[y] == 0xffc0 {
+            if new_board[y] == 0x3ff {
                 cleared_rows += 1;
             } else if cleared_rows > 0 {
                 new_board[y + cleared_rows as usize] = new_board[y];
@@ -364,7 +364,7 @@ impl FieldCells for Board {
             if y < 40 - garbage as usize {
                 new_board[y] = new_board[y + garbage as usize];
             } else {
-                new_board[y] = 0xffc0 & !row_x(hole_positions.pop().unwrap());
+                new_board[y] = 0x3ff & !row_x(hole_positions.pop().unwrap());
             }
         }
 

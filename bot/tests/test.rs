@@ -3,7 +3,7 @@ fn search_halting() {
     let state = tetris::State::new_random_state();
 
     let bot = bot::Bot {
-        evaluator: bot::Evaluator {},
+        evaluator: bot::Evaluator::default(),
     };
 
     let next_state = bot.get_move(state.clone()).unwrap();
@@ -17,7 +17,7 @@ fn bot_play() {
     let mut current_state = tetris::State::new_random_state();
 
     let bot = bot::Bot {
-        evaluator: bot::Evaluator {},
+        evaluator: bot::Evaluator::default(),
     };
 
     loop {

@@ -6,7 +6,7 @@ pub type Score = i32;
 pub type Reward = Score;
 pub type Value = Score;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize, Default)]
 pub struct Evaluator {
     // value
     pub bumpiness: i32,

@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use tetris::{row_x, Board, State};
 

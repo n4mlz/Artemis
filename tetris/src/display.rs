@@ -68,15 +68,15 @@ fn write_field_cell(
     color: termion::color::Rgb,
     offset: Option<(u16, u16)>,
 ) -> fmt::Result {
-    if cell.1 < 15 {
+    if cell.1 > 23 {
         return fmt::Result::Ok(());
     }
 
-    write_pos(f, (cell.0 * 2 + 14, cell.1 - 15), color, offset)
+    write_pos(f, (cell.0 * 2 + 14, 24 - cell.1), color, offset)
 }
 
 fn write_board(f: &mut fmt::Formatter, board: &Board, offset: Option<(u16, u16)>) -> fmt::Result {
-    for i in 0..41 {
+    for i in -1..40 {
         for j in -1..11 {
             if board.occupied(j, i) {
                 let color = if !(0..10).contains(&j) || !(0..40).contains(&i) {
@@ -106,7 +106,7 @@ fn write_piece(
     for (x, y) in piece_state.cells() {
         write_pos(
             f,
-            (pos.0 + (x + 1) * 2, pos.1 + (y + 1)),
+            (pos.0 + (1 + x) * 2, pos.1 + (1 - y)),
             PIECE_COLOR,
             offset,
         )?;

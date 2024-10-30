@@ -19,13 +19,13 @@ impl Piece {
         // NOTE: this is configured for tetrio
         // TODO: confirm this is correct
         match self {
-            Piece::S => (4, 19),
-            Piece::Z => (4, 19),
-            Piece::J => (4, 19),
-            Piece::L => (4, 19),
-            Piece::I => (4, 19),
-            Piece::O => (4, 18),
-            Piece::T => (4, 19),
+            Piece::S => (4, 20),
+            Piece::Z => (4, 20),
+            Piece::J => (4, 20),
+            Piece::L => (4, 20),
+            Piece::I => (4, 20),
+            Piece::O => (4, 21),
+            Piece::T => (4, 20),
         }
     }
 }
@@ -101,7 +101,7 @@ impl PieceState {
             [(-1, 0), (0, 0), (1, 0), (-1, 1)], // J
             [(-1, 0), (0, 0), (1, 0), (1, 1)],  // L
             [(-1, 0), (0, 0), (1, 0), (2, 0)],  // I
-            [(0, 0), (1, 0), (0, 1), (1, 1)],   // O
+            [(0, 0), (1, 0), (0, -1), (1, -1)], // O
             [(-1, 0), (0, 0), (1, 0), (0, 1)]   // T
         );
 

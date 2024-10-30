@@ -47,7 +47,6 @@ impl Population {
     }
 
     pub fn load_or_generate(path: &str) -> Self {
-        // TODO: make sure it works correctly
         if let Ok(mut file) = File::open(path) {
             let mut json = String::new();
             let _ = file.read_to_string(&mut json);
@@ -58,7 +57,6 @@ impl Population {
     }
 
     pub fn save(&self, path: &str) {
-        // TODO: make sure it works correctly
         let json = serde_json::to_string(self).unwrap();
         let mut file = File::create(path).unwrap();
         file.write_all(json.as_bytes()).unwrap();
@@ -66,6 +64,8 @@ impl Population {
 
     fn evaluate(&mut self) {
         for i in 0..POPULATION_SIZE {
+            println!("member: {}", i);
+
             if self.members[i].score.is_none() {
                 self.members[i].score = Some(Score::new());
             }
@@ -84,19 +84,25 @@ impl Population {
                 let win = do_battle(&p1, &p2);
                 self.members[i].score.as_mut().unwrap().update(win);
                 self.members[j].score.as_mut().unwrap().update(!win);
+
+                println!("{}", if win { "win" } else { "lose" });
             }
+
+            println!(
+                "win rate: {}",
+                self.members[i].score.as_ref().unwrap().win_rate()
+            );
         }
     }
 
     fn select(&self) -> (&Member, &Member) {
-        // TODO: make sure it works correctly
         let mut rng = thread_rng();
         let group = self.members.choose_multiple(&mut rng, SELECTION_SIZE);
         group
             .sorted_by(|a, b| {
                 let a_score = a.score.as_ref().unwrap();
                 let b_score = b.score.as_ref().unwrap();
-                a_score.cmp(b_score)
+                b_score.cmp(a_score)
             })
             .take(2)
             .next_tuple()
@@ -111,7 +117,7 @@ impl Population {
             .sorted_by(|a, b| {
                 let a_score = a.score.as_ref().unwrap();
                 let b_score = b.score.as_ref().unwrap();
-                a_score.cmp(b_score)
+                b_score.cmp(a_score)
             })
             .take(2)
             .cloned()
@@ -133,8 +139,9 @@ impl Population {
         }
     }
 
-    pub fn optimize(&mut self) {
+    pub fn optimize(&mut self) -> Self {
+        println!("generation: {}", self.generation);
         self.evaluate();
-        *self = self.crossover();
+        self.crossover()
     }
 }

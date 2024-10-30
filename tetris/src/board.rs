@@ -133,43 +133,59 @@ impl Hash for MovementState {
     }
 }
 
-fn row_x(x: i32) -> u16 {
-    1 << (15 - x)
+pub fn row_x(x: i32) -> u16 {
+    1 << x
 }
 
-pub type Board = [u16; 40];
-
-pub trait FieldCells {
-    fn new() -> Self;
-    fn occupied(&self, x: i32, y: i32) -> bool;
-    fn is_empty(&self) -> bool;
-    fn attempt(&self, field_piece: FieldPiece) -> bool;
-    fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementState>;
-    fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind);
-    fn receive_garbage(&self, garbage: u32) -> Board;
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub struct Board {
+    pub cells: [u16; 40],
+    pub collumn_heights: [u32; 10],
 }
 
-impl FieldCells for Board {
-    fn new() -> Board {
-        [0; 40]
+impl Default for Board {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Board {
+    pub fn new() -> Board {
+        Board {
+            cells: [0; 40],
+            collumn_heights: [0; 10],
+        }
     }
 
-    fn occupied(&self, x: i32, y: i32) -> bool {
-        !(0..10).contains(&x) || !(0..40).contains(&y) || (self[y as usize] & row_x(x) > 0)
+    pub fn occupied(&self, x: i32, y: i32) -> bool {
+        !(0..10).contains(&x) || !(0..40).contains(&y) || (self.cells[y as usize] & row_x(x) > 0)
     }
 
-    fn is_empty(&self) -> bool {
-        self[39] == 0
+    pub fn is_empty(&self) -> bool {
+        self.cells[0] == 0
     }
 
-    fn attempt(&self, field_piece: FieldPiece) -> bool {
+    fn calc_collumn_heights(&self) -> [u32; 10] {
+        let mut collumn_heights = [0; 10];
+        for x in 0..10 {
+            for y in (0..40).rev() {
+                if self.occupied(x, y) {
+                    collumn_heights[x as usize] = y as u32 + 1;
+                    break;
+                }
+            }
+        }
+        collumn_heights
+    }
+
+    pub fn attempt(&self, field_piece: FieldPiece) -> bool {
         field_piece
             .cells()
             .iter()
             .all(|&(x, y)| !self.occupied(x, y))
     }
 
-    fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementState> {
+    pub fn legal_moves(&self, movement_state: MovementState) -> Vec<MovementState> {
         if movement_state.field_piece.is_locked {
             return vec![];
         }
@@ -212,8 +228,8 @@ impl FieldCells for Board {
                 PieceMovement::SoftDrop => {
                     let mut new_field_piece = movement_state.field_piece;
                     let mut count = 0;
-                    while self.attempt(new_field_piece.move_by(0, 1)) {
-                        new_field_piece = new_field_piece.move_by(0, 1);
+                    while self.attempt(new_field_piece.move_by(0, -1)) {
+                        new_field_piece = new_field_piece.move_by(0, -1);
                         count += 1;
                     }
                     if count > 0 {
@@ -227,8 +243,8 @@ impl FieldCells for Board {
 
                 PieceMovement::HardDrop => {
                     let mut new_field_piece = movement_state.field_piece;
-                    while self.attempt(new_field_piece.move_by(0, 1)) {
-                        new_field_piece = new_field_piece.move_by(0, 1);
+                    while self.attempt(new_field_piece.move_by(0, -1)) {
+                        new_field_piece = new_field_piece.move_by(0, -1);
                     }
                     let mut new_movement_state = movement_state.next_movement_state(
                         new_field_piece,
@@ -271,26 +287,28 @@ impl FieldCells for Board {
         result
     }
 
-    fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind) {
+    pub fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind) {
         use PlacementKind::*;
 
         let mut new_board = *self; // copy
         for &(x, y) in field_piece.cells().iter() {
-            new_board[y as usize] |= row_x(x);
+            new_board.cells[y as usize] |= row_x(x);
         }
 
         let mut cleared_rows = 0;
         // reverse order to avoid shifting
-        for y in (0..40).rev() {
-            if new_board[y] == 0xffc0 {
+        for y in 0..40 {
+            if new_board.cells[y] == 0x3ff {
                 cleared_rows += 1;
             } else if cleared_rows > 0 {
-                new_board[y + cleared_rows as usize] = new_board[y];
+                new_board.cells[y - cleared_rows as usize] = new_board.cells[y];
             }
         }
         for y in 0..cleared_rows {
-            new_board[y as usize] = 0;
+            new_board.cells[39 - y as usize] = 0;
         }
+
+        new_board.collumn_heights = new_board.calc_collumn_heights();
 
         if field_piece.piece_state.piece != Piece::T {
             let placement_kind = match cleared_rows {
@@ -342,9 +360,9 @@ impl FieldCells for Board {
         }
     }
 
-    fn receive_garbage(&self, garbage: u32) -> Board {
+    pub fn receive_garbage(&self, garbage: u32) -> Board {
         let mut rng = thread_rng();
-        let mut new_board = *self;
+        let mut new_board = *self; // copy
         let mut hole_positions = vec![rng.gen_range(0..10)];
 
         for _ in 1..garbage as usize {
@@ -360,13 +378,15 @@ impl FieldCells for Board {
             }
         }
 
-        for y in 0..40 {
-            if y < 40 - garbage as usize {
-                new_board[y] = new_board[y + garbage as usize];
+        for y in (0..40).rev() {
+            if y >= garbage as usize {
+                new_board.cells[y] = new_board.cells[y - garbage as usize];
             } else {
-                new_board[y] = 0xffc0 & !row_x(hole_positions.pop().unwrap());
+                new_board.cells[y] = 0x3ff & !row_x(hole_positions.pop().unwrap());
             }
         }
+
+        new_board.collumn_heights = new_board.collumn_heights.map(|h| h + garbage);
 
         new_board
     }

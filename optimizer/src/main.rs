@@ -14,7 +14,8 @@ fn main() {
     let mut population = Population::load_or_generate(path);
 
     loop {
-        population.optimize();
+        let new_population = population.optimize();
         population.save(path);
+        population = new_population;
     }
 }

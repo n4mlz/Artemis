@@ -66,6 +66,8 @@ impl Population {
 
     fn evaluate(&mut self) {
         for i in 0..POPULATION_SIZE {
+            println!("member: {}", i);
+
             if self.members[i].score.is_none() {
                 self.members[i].score = Some(Score::new());
             }
@@ -84,7 +86,14 @@ impl Population {
                 let win = do_battle(&p1, &p2);
                 self.members[i].score.as_mut().unwrap().update(win);
                 self.members[j].score.as_mut().unwrap().update(!win);
+
+                println!("{}", if win { "win" } else { "lose" });
             }
+
+            println!(
+                "win rate: {}",
+                self.members[i].score.as_ref().unwrap().win_rate()
+            );
         }
     }
 
@@ -133,8 +142,9 @@ impl Population {
         }
     }
 
-    pub fn optimize(&mut self) {
+    pub fn optimize(&mut self) -> Self {
+        println!("generation: {}", self.generation);
         self.evaluate();
-        *self = self.crossover();
+        self.crossover()
     }
 }

@@ -49,10 +49,9 @@ impl Evaluator {
         value += covers * self.covers;
         value += covers * covers * self.covers_sq;
 
-        let well_scale = self
-            .well_scale
+        let well_scale = [0; 10]
             .iter()
-            .map(|&v| adjusted_index(v))
+            .map(|&v| self.well_scale[adjusted_index(v)])
             .collect_vec();
 
         let well_depths = well_depths(&state.board);
@@ -140,7 +139,7 @@ fn covers(board: &Board) -> i32 {
     covers
 }
 
-fn adjusted_index(index: i32) -> i32 {
+fn adjusted_index(index: usize) -> usize {
     if index < 5 {
         index
     } else {

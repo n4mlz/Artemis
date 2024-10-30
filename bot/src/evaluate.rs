@@ -140,12 +140,12 @@ fn cavities_and_overhangs(board: &Board) -> (i32, i32) {
                 continue;
             }
 
-            if x > 1 && board.collumn_heights[x - 1] < y && board.collumn_heights[x - 2] - 1 < y {
+            if x > 1 && board.collumn_heights[x - 1] < y && board.collumn_heights[x - 2] < y + 1 {
                 overhangs += 1;
                 continue;
             }
 
-            if x < 8 && board.collumn_heights[x + 1] < y && board.collumn_heights[x + 2] - 1 < y {
+            if x < 8 && board.collumn_heights[x + 1] < y && board.collumn_heights[x + 2] < y + 1 {
                 overhangs += 1;
                 continue;
             }

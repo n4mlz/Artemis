@@ -9,14 +9,84 @@ pub type Value = Score;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Evaluator {
-    // TODO: add some parameters
+    // value
+    pub bumpiness: i32,
+    pub bumpiness_sq: i32,
+    pub cavities: i32,
+    pub cavities_sq: i32,
+    pub overhangs: i32,
+    pub overhangs_sq: i32,
+    pub covers: i32,
+    pub covers_sq: i32,
+    pub well_scale: [i32; 5],
+    pub well_depth_1: i32,
+    pub well_depth_1_sq: i32,
+    pub well_depth_2: i32,
+    pub well_depth_2_sq: i32,
+    pub well_clearable_lines: i32,
+    pub well_clearable_lines_sq: i32,
+    pub hight: i32,
+    pub hight_sq: i32,
+    pub b2b: i32,
+    pub holding: [i32; 5], // (S, Z), (J, L), T, O, I  // TODO: put in order
 }
 
 impl Evaluator {
     pub fn evaluate(&self, state: &State) -> (Reward, Value) {
-        // height of the highest column
-        let height = *state.board.collumn_heights.iter().max().unwrap();
-        (0, height as Value * -100)
+        let (mut reward, mut value) = (0, 0);
+
+        let bumpiness = bumpiness(&state.board);
+        value += bumpiness * self.bumpiness;
+        value += bumpiness * bumpiness * self.bumpiness_sq;
+
+        let (cavities, overhangs) = cavities_and_overhangs(&state.board);
+        value += cavities * self.cavities;
+        value += cavities * cavities * self.cavities_sq;
+        value += overhangs * self.overhangs;
+        value += overhangs * overhangs * self.overhangs_sq;
+
+        let covers = covers(&state.board);
+        value += covers * self.covers;
+        value += covers * covers * self.covers_sq;
+
+        let well_scale = self
+            .well_scale
+            .iter()
+            .map(|&v| adjusted_index(v))
+            .collect_vec();
+
+        let well_depths = well_depths(&state.board);
+        let well_col = deepest_well_collumn(&well_depths);
+
+        let (depth_1, depth_2) = two_deepest_well_depths(&well_depths);
+        value += depth_1 * scale_by_rate(self.well_depth_1, well_scale[well_col]);
+        value += depth_1 * depth_1 * scale_by_rate(self.well_depth_1_sq, well_scale[well_col]);
+        value += depth_2 * scale_by_rate(self.well_depth_2, well_scale[well_col]);
+        value += depth_2 * depth_2 * scale_by_rate(self.well_depth_2_sq, well_scale[well_col]);
+
+        let clearables = deepest_well_clearable_lines(&state.board, well_col);
+        value += clearables * scale_by_rate(self.well_clearable_lines, well_scale[well_col]);
+        value += clearables
+            * clearables
+            * scale_by_rate(self.well_clearable_lines_sq, well_scale[well_col]);
+
+        let hight = hight(&state.board);
+        value += hight * self.hight;
+        value += hight * hight * self.hight_sq;
+
+        value += state.b2b as i32 * self.b2b;
+
+        if let Some(hold_piece) = state.hold_piece {
+            match hold_piece {
+                tetris::Piece::S | tetris::Piece::Z => value += self.holding[0],
+                tetris::Piece::J | tetris::Piece::L => value += self.holding[1],
+                tetris::Piece::T => value += self.holding[2],
+                tetris::Piece::O => value += self.holding[3],
+                tetris::Piece::I => value += self.holding[4],
+            }
+        }
+
+        (reward, value)
     }
 }
 
@@ -70,6 +140,19 @@ fn covers(board: &Board) -> i32 {
     covers
 }
 
+fn adjusted_index(index: i32) -> i32 {
+    if index < 5 {
+        index
+    } else {
+        9 - index
+    }
+}
+
+fn scale_by_rate(value: i32, rate: i32) -> i32 {
+    const MAX_SCALE: i32 = 1000;
+    value * rate / MAX_SCALE
+}
+
 fn well_depths(board: &Board) -> [i32; 10] {
     let mut well_depths = [0; 10];
     for x in 0..10 {
@@ -88,6 +171,16 @@ fn well_depths(board: &Board) -> [i32; 10] {
     well_depths
 }
 
+fn deepest_well_collumn(well_depths: &[i32; 10]) -> usize {
+    let mut col = 0;
+    for i in 1..10 {
+        if well_depths[i] > well_depths[col] {
+            col = i;
+        }
+    }
+    col
+}
+
 fn two_deepest_well_depths(well_depths: &[i32; 10]) -> (i32, i32) {
     well_depths
         .iter()
@@ -98,20 +191,10 @@ fn two_deepest_well_depths(well_depths: &[i32; 10]) -> (i32, i32) {
         .unwrap()
 }
 
-fn deepest_well_collumn(well_depths: &[i32; 10]) -> i32 {
-    let mut col = 0;
-    for i in 1..10 {
-        if well_depths[i] > well_depths[col] {
-            col = i;
-        }
-    }
-    col as i32
-}
-
-fn deepest_well_clearable_lines(board: &Board, well_col: i32) -> i32 {
+fn deepest_well_clearable_lines(board: &Board, well_col: usize) -> i32 {
     let mut clearable_lines = 0;
-    for y in board.collumn_heights[well_col as usize]..20 {
-        if (board.cells[y as usize] | row_x(well_col)) != 0x3ff {
+    for y in board.collumn_heights[well_col]..20 {
+        if (board.cells[y as usize] | row_x(well_col as i32)) != 0x3ff {
             break;
         }
         clearable_lines += 1;

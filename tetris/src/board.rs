@@ -133,7 +133,7 @@ impl Hash for MovementState {
     }
 }
 
-fn row_x(x: i32) -> u16 {
+pub fn row_x(x: i32) -> u16 {
     1 << x
 }
 

@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
+itertools = "0.13.0"
 strum = { version = "0.26.3" }
 serde = { version = "1.0.213", features = ["derive"] }
 termion = "4.0.2"

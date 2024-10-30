@@ -96,14 +96,13 @@ impl Population {
     }
 
     fn select(&self) -> (&Member, &Member) {
-        // TODO: make sure it works correctly
         let mut rng = thread_rng();
         let group = self.members.choose_multiple(&mut rng, SELECTION_SIZE);
         group
             .sorted_by(|a, b| {
                 let a_score = a.score.as_ref().unwrap();
                 let b_score = b.score.as_ref().unwrap();
-                a_score.cmp(b_score)
+                b_score.cmp(a_score)
             })
             .take(2)
             .next_tuple()
@@ -118,7 +117,7 @@ impl Population {
             .sorted_by(|a, b| {
                 let a_score = a.score.as_ref().unwrap();
                 let b_score = b.score.as_ref().unwrap();
-                a_score.cmp(b_score)
+                b_score.cmp(a_score)
             })
             .take(2)
             .cloned()

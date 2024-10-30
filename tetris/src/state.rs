@@ -16,6 +16,7 @@ pub struct State {
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct LastAction {
     pub placement_kind: PlacementKind,
+    pub placed_piece: Piece,
     pub b2b: bool, // as an action
     pub combo: u32,
     pub perfect_clear: bool,
@@ -100,6 +101,7 @@ impl State {
                 b2b: is_b2b_enabled(placement_kind),
                 last_action: Some(LastAction {
                     placement_kind,
+                    placed_piece: movement_state.field_piece.piece_state.piece,
                     b2b: false,
                     combo: 0,
                     perfect_clear: false,
@@ -119,6 +121,7 @@ impl State {
                 b2b: is_b2b_enabled(placement_kind),
                 last_action: Some(LastAction {
                     placement_kind,
+                    placed_piece: movement_state.field_piece.piece_state.piece,
                     b2b: false,
                     combo: 1,
                     perfect_clear: true,
@@ -157,6 +160,7 @@ impl State {
             b2b: is_b2b_enabled(placement_kind),
             last_action: Some(LastAction {
                 placement_kind,
+                placed_piece: movement_state.field_piece.piece_state.piece,
                 b2b: self.b2b && is_b2b_enabled(placement_kind),
                 combo,
                 perfect_clear: false,

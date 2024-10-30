@@ -28,6 +28,16 @@ pub struct Evaluator {
     pub hight_sq: i32,
     pub b2b: i32,
     pub holding: [i32; 5], // (S, Z), (J, L), T, O, I  // TODO: put in order
+
+    // reward
+    pub move_time: i32,
+    pub wasted_i: i32,
+    pub b2b_clear: i32,
+    pub combo_garbage: i32,
+    pub clear1: i32,
+    pub clear2: i32,
+    pub clear3: i32,
+    pub clear4: i32,
 }
 
 impl Evaluator {
@@ -81,6 +91,30 @@ impl Evaluator {
                 tetris::Piece::T => value += self.holding[2],
                 tetris::Piece::O => value += self.holding[3],
                 tetris::Piece::I => value += self.holding[4],
+            }
+        }
+
+        if let Some(last_action) = &state.last_action {
+            reward += last_action.time as i32 * self.move_time;
+
+            if last_action.placed_piece == tetris::Piece::I
+                && last_action.placement_kind == tetris::PlacementKind::None
+            {
+                reward += self.wasted_i;
+            }
+
+            if last_action.b2b {
+                reward += self.b2b_clear;
+            }
+
+            reward += last_action.combo as i32 * self.combo_garbage;
+
+            match last_action.placement_kind {
+                tetris::PlacementKind::Clear1 => reward += self.clear1,
+                tetris::PlacementKind::Clear2 => reward += self.clear2,
+                tetris::PlacementKind::Clear3 => reward += self.clear3,
+                tetris::PlacementKind::Clear4 => reward += self.clear4,
+                _ => {}
             }
         }
 

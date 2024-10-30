@@ -46,6 +46,15 @@ impl Gene for Evaluator {
             hight_sq: i32::generate(),
             b2b: i32::generate(),
             holding: [i32::generate(); 5],
+
+            move_time: i32::generate(),
+            wasted_i: i32::generate(),
+            b2b_clear: i32::generate(),
+            combo_garbage: i32::generate(),
+            clear1: i32::generate(),
+            clear2: i32::generate(),
+            clear3: i32::generate(),
+            clear4: i32::generate(),
         }
     }
 
@@ -88,6 +97,15 @@ impl Gene for Evaluator {
                 i32::crossover(&parent1.holding[3], &parent2.holding[3]),
                 i32::crossover(&parent1.holding[4], &parent2.holding[4]),
             ],
+
+            move_time: i32::crossover(&parent1.move_time, &parent2.move_time),
+            wasted_i: i32::crossover(&parent1.wasted_i, &parent2.wasted_i),
+            b2b_clear: i32::crossover(&parent1.b2b_clear, &parent2.b2b_clear),
+            combo_garbage: i32::crossover(&parent1.combo_garbage, &parent2.combo_garbage),
+            clear1: i32::crossover(&parent1.clear1, &parent2.clear1),
+            clear2: i32::crossover(&parent1.clear2, &parent2.clear2),
+            clear3: i32::crossover(&parent1.clear3, &parent2.clear3),
+            clear4: i32::crossover(&parent1.clear4, &parent2.clear4),
         }
     }
 }

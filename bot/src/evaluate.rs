@@ -203,3 +203,30 @@ fn deepest_well_clearable_lines(board: &Board, well_col: usize) -> i32 {
 fn hight(board: &Board) -> i32 {
     *board.collumn_heights.iter().max().unwrap() as i32
 }
+
+// TODO: remove
+pub fn debug_evaluation(state: &State) {
+    let bumpiness = bumpiness(&state.board);
+    println!("bumpiness: {}", bumpiness);
+
+    let (cavities, overhangs) = cavities_and_overhangs(&state.board);
+    println!("cavities: {}, overhangs: {}", cavities, overhangs);
+
+    let covers = covers(&state.board);
+    println!("covers: {}", covers);
+
+    let well_depths = well_depths(&state.board);
+    println!("well_depths: {:?}", well_depths);
+
+    let well_col = deepest_well_collumn(&well_depths);
+    println!("well_col: {}", well_col);
+
+    let (depth_1, depth_2) = two_deepest_well_depths(&well_depths);
+    println!("depth_1: {}, depth_2: {}", depth_1, depth_2);
+
+    let clearables = deepest_well_clearable_lines(&state.board, well_col);
+    println!("clearables: {}", clearables);
+
+    let hight = hight(&state.board);
+    println!("hight: {}", hight);
+}

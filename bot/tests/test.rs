@@ -23,6 +23,7 @@ fn bot_play() {
     loop {
         println!("{}", termion::clear::All);
         println!("{}", current_state);
+        bot::debug_evaluation(&current_state);
 
         if let Some(next_state) = bot.get_move(current_state.clone()) {
             current_state = next_state.clone();

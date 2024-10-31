@@ -7,6 +7,7 @@ fn replay_population() {
 
     let population = Population::load_or_generate(path);
 
+    // TODO: fix
     if population.generation == 0 {
         return;
     }

@@ -21,7 +21,7 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
 
         if p1_time <= p2_time {
             if p1_garbage > 0 {
-                p2_state.receive_garbage(p1_garbage);
+                p1_state.receive_garbage(p1_garbage);
                 p1_garbage = 0;
             }
 
@@ -42,7 +42,7 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
             p2_garbage += p1_state.last_action.clone().unwrap().garbage_sent;
         } else {
             if p2_garbage > 0 {
-                p1_state.receive_garbage(p2_garbage);
+                p2_state.receive_garbage(p2_garbage);
                 p2_garbage = 0;
             }
 

@@ -29,3 +29,38 @@ fn replay_population() {
 
     optimizer::do_battle(&p1, &p2, true);
 }
+
+#[test]
+fn replay_bot() {
+    let path = "../population.json";
+
+    let population = Population::load_or_generate(path);
+
+    if population.generation == 0 {
+        return;
+    }
+
+    let bot = population
+        .members
+        .iter()
+        .max_by_key(|m| m.score.as_ref().unwrap())
+        .unwrap();
+    let bot = bot::Bot::new(bot.evaluator);
+
+    let mut current_state = tetris::State::new_random_state();
+
+    loop {
+        println!("{}", termion::clear::All);
+        println!("{}", current_state);
+        bot::debug_evaluation(&current_state);
+
+        if let Some(next_state) = bot.get_move(current_state.clone()) {
+            current_state = next_state.clone();
+            if current_state.next_pieces.len() < 8 {
+                current_state.extend_next_pieces();
+            }
+        } else {
+            break;
+        }
+    }
+}

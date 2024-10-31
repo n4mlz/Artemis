@@ -203,6 +203,7 @@ fn well_depths(board: &Board) -> [i32; 10] {
     well_depths
 }
 
+// TODO: consider the case where A does not exist
 fn deepest_well_collumn(well_depths: &[i32; 10]) -> usize {
     let mut col = 0;
     for i in 1..10 {
@@ -213,6 +214,7 @@ fn deepest_well_collumn(well_depths: &[i32; 10]) -> usize {
     col
 }
 
+// TODO: consider the case where A does not exist
 fn two_deepest_well_depths(well_depths: &[i32; 10]) -> (i32, i32) {
     well_depths
         .iter()
@@ -223,6 +225,7 @@ fn two_deepest_well_depths(well_depths: &[i32; 10]) -> (i32, i32) {
         .unwrap()
 }
 
+// TODO: consider the case where A does not exist
 fn deepest_well_clearable_lines(board: &Board, well_col: usize) -> i32 {
     let mut clearable_lines = 0;
     for y in board.collumn_heights[well_col]..20 {

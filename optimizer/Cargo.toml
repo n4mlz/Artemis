@@ -8,5 +8,6 @@ rand = "0.8.5"
 itertools = "0.13.0"
 serde = { version = "1.0.213", features = ["derive"] }
 serde_json = "1.0.132"
+termion = "4.0.2"
 tetris = { path = "../tetris" }
 bot= { path = "../bot" }

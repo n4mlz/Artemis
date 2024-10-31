@@ -1,7 +1,7 @@
 const MAX_TIME: u32 = 1000000;
 
 // returns true if p1 wins, false if p2 wins
-pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot) -> bool {
+pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
     let mut p1_state = tetris::State::new_random_state();
     let mut p2_state = tetris::State::new_random_state();
 
@@ -61,6 +61,11 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot) -> bool {
 
             p2_time += p2_state.last_action.clone().unwrap().time;
             p1_garbage += p2_state.last_action.clone().unwrap().garbage_sent;
+        }
+
+        if debug {
+            println!("{}", termion::clear::All);
+            println!("{}", tetris::PairState(p1_state.clone(), p2_state.clone()));
         }
     }
 }

@@ -20,14 +20,14 @@ const SELECTION_SIZE: usize = 10;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Population {
-    generation: u32,
-    members: Vec<Member>,
+    pub generation: u32,
+    pub members: Vec<Member>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-struct Member {
-    evaluator: Evaluator,
-    score: Option<Score>,
+pub struct Member {
+    pub evaluator: Evaluator,
+    pub score: Option<Score>,
 }
 
 impl Population {
@@ -81,7 +81,7 @@ impl Population {
                 let p1 = Bot::new(self.members[i].evaluator);
                 let p2 = Bot::new(self.members[j].evaluator);
 
-                let win = do_battle(&p1, &p2);
+                let win = do_battle(&p1, &p2, false);
                 self.members[i].score.as_mut().unwrap().update(win);
                 self.members[j].score.as_mut().unwrap().update(!win);
 

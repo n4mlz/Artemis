@@ -81,7 +81,7 @@ impl Population {
                 let p1 = Bot::new(self.members[i].evaluator);
                 let p2 = Bot::new(self.members[j].evaluator);
 
-                let win = do_battle(&p1, &p2, false);
+                let win = do_battle(&p1, &p2, true);
                 self.members[i].score.as_mut().unwrap().update(win);
                 self.members[j].score.as_mut().unwrap().update(!win);
 

@@ -1,12 +1,17 @@
 const MAX_TIME: u32 = 1000000;
 
 // returns true if p1 wins, false if p2 wins
+// urrent implementation has the attack occur at the end of the turn with the attack (just before the next move begins)
+// TODO: allow more accurate simulation of attack timing
 pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
     let mut p1_state = tetris::State::new_random_state();
     let mut p2_state = tetris::State::new_random_state();
 
     let mut p1_time = 0;
     let mut p2_time = 0;
+
+    let mut p1_attack = 0;
+    let mut p2_attack = 0;
 
     // garbage that a player has not yet received
     // ex: if p1 sends 2 garbage, p2_garbage will be 2 until p2 receives it
@@ -20,9 +25,14 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
         }
 
         if p1_time <= p2_time {
-            if p1_garbage > 0 {
-                p1_state.receive_garbage(p1_garbage);
+            if p1_garbage as i32 - p1_attack as i32 > 0 {
+                p1_state.receive_garbage(p1_garbage - p1_attack);
                 p1_garbage = 0;
+                p1_attack = 0;
+            } else {
+                p2_garbage += p1_attack - p1_garbage;
+                p1_garbage = 0;
+                p1_attack = 0;
             }
 
             if p1_state.is_dead() {
@@ -39,11 +49,16 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
             }
 
             p1_time += p1_state.last_action.clone().unwrap().time;
-            p2_garbage += p1_state.last_action.clone().unwrap().garbage_sent;
+            p1_attack += p1_state.last_action.clone().unwrap().garbage_sent;
         } else {
-            if p2_garbage > 0 {
-                p2_state.receive_garbage(p2_garbage);
+            if p2_garbage as i32 - p2_attack as i32 > 0 {
+                p2_state.receive_garbage(p2_garbage - p2_attack);
                 p2_garbage = 0;
+                p2_attack = 0;
+            } else {
+                p1_garbage += p2_attack - p2_garbage;
+                p2_garbage = 0;
+                p2_attack = 0;
             }
 
             if p2_state.is_dead() {
@@ -60,7 +75,7 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
             }
 
             p2_time += p2_state.last_action.clone().unwrap().time;
-            p1_garbage += p2_state.last_action.clone().unwrap().garbage_sent;
+            p2_attack += p2_state.last_action.clone().unwrap().garbage_sent;
         }
 
         if debug {

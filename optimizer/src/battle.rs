@@ -1,4 +1,6 @@
-const MAX_TIME: u32 = 1000000;
+const MARGIN_TIME: u32 = 1000;
+// gababe increase rate per 1000 time
+const GABAGE_INCREASE: f64 = 1.1;
 
 // returns true if p1 wins, false if p2 wins
 // urrent implementation has the attack occur at the end of the turn with the attack (just before the next move begins)
@@ -19,12 +21,11 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
     let mut p2_garbage = 0;
 
     loop {
-        if p1_time >= MAX_TIME && p2_time >= MAX_TIME {
-            return p1_state.board.collumn_heights.iter().max().unwrap()
-                <= p2_state.board.collumn_heights.iter().max().unwrap();
-        }
-
         if p1_time <= p2_time {
+            let increase_rate = GABAGE_INCREASE
+                .powf(((p1_time as i32 - MARGIN_TIME as i32).max(0) as f64) / 1000.0);
+            p1_attack = (p1_attack as f64 * increase_rate).round() as u32;
+
             if p1_garbage as i32 - p1_attack as i32 > 0 {
                 p1_state.receive_garbage(p1_garbage - p1_attack);
                 p1_garbage = 0;
@@ -51,6 +52,10 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
             p1_time += p1_state.last_action.clone().unwrap().time;
             p1_attack += p1_state.last_action.clone().unwrap().garbage_sent;
         } else {
+            let increase_rate = GABAGE_INCREASE
+                .powf(((p2_time as i32 - MARGIN_TIME as i32).max(0) as f64) / 1000.0);
+            p2_attack = (p2_attack as f64 * increase_rate).round() as u32;
+
             if p2_garbage as i32 - p2_attack as i32 > 0 {
                 p2_state.receive_garbage(p2_garbage - p2_attack);
                 p2_garbage = 0;

@@ -226,6 +226,7 @@ fn two_deepest_well_depths(well_depths: &[i32; 10]) -> (i32, i32) {
 }
 
 // TODO: consider the case where A does not exist
+// TODO: fix (columns with clearable wells are not always the deepest wells)
 fn deepest_well_clearable_lines(board: &Board, well_col: usize) -> i32 {
     let mut clearable_lines = 0;
     for y in board.collumn_heights[well_col]..20 {

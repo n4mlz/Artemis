@@ -79,10 +79,12 @@ impl Population {
                 let p1 = Bot::new(self.members[i].evaluator);
                 let p2 = Bot::new(self.members[j].evaluator);
 
-                let win = do_battle(&p1, &p2, true);
+                let win = do_battle(&p1, &p2, false);
                 self.members[i].score.as_mut().unwrap().update(win);
                 self.members[j].score.as_mut().unwrap().update(!win);
             }
+
+            debug_optimizer(self.generation, i);
         }
     }
 
@@ -134,4 +136,16 @@ impl Population {
         self.evaluate();
         self.crossover()
     }
+}
+
+fn debug_optimizer(generation: u32, member: usize) {
+    println!("{}", termion::cursor::Show);
+    println!("generation: {}", generation);
+    println!(
+        "member: {} / {} ({:4.1} %)",
+        member,
+        POPULATION_SIZE,
+        member as f64 / POPULATION_SIZE as f64 * 100.0
+    );
+    println!("{}{}", termion::cursor::Up(4), termion::cursor::Hide);
 }

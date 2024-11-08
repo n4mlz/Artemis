@@ -7,11 +7,6 @@ fn replay_population() {
 
     let population = Population::load_or_generate(path);
 
-    // TODO: fix
-    if population.generation == 0 {
-        return;
-    }
-
     let (p1, p2) = population
         .members
         .iter()
@@ -31,10 +26,6 @@ fn replay_bot() {
     let path = "../population.json";
 
     let population = Population::load_or_generate(path);
-
-    if population.generation == 0 {
-        return;
-    }
 
     let bot = population.members.iter().max_by_key(|m| &m.score).unwrap();
     let bot = bot::Bot::new(bot.evaluator);

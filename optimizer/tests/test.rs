@@ -15,11 +15,7 @@ fn replay_population() {
     let (p1, p2) = population
         .members
         .iter()
-        .sorted_by(|a, b| {
-            let a_score = a.score.as_ref().unwrap();
-            let b_score = b.score.as_ref().unwrap();
-            b_score.cmp(a_score)
-        })
+        .sorted_by(|a, b| b.score.cmp(&a.score))
         .take(2)
         .next_tuple()
         .unwrap();
@@ -40,11 +36,7 @@ fn replay_bot() {
         return;
     }
 
-    let bot = population
-        .members
-        .iter()
-        .max_by_key(|m| m.score.as_ref().unwrap())
-        .unwrap();
+    let bot = population.members.iter().max_by_key(|m| &m.score).unwrap();
     let bot = bot::Bot::new(bot.evaluator);
 
     let mut current_state = tetris::State::new_random_state();

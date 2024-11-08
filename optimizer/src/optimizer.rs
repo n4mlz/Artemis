@@ -151,7 +151,7 @@ fn debug_optimizer(generation: u32, member: usize) {
     println!("{}", termion::cursor::Show);
     println!("generation: {}", generation);
     println!(
-        "member: {:4} / {} ({:4.1} %)",
+        "member: {:4} / {} ({:5.1} %)",
         member,
         POPULATION_SIZE,
         member as f64 / POPULATION_SIZE as f64 * 100.0

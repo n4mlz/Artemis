@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use tetris::{Board, State};
+use tetris::{combo_attack, Board, State};
 
 pub type Score = i32;
 pub type Reward = Score;
@@ -30,6 +30,7 @@ pub struct Evaluator {
     pub move_time: i32,
     pub wasted_i: i32,
     pub b2b_clear: i32,
+    pub perfect_clear: i32,
     pub combo_garbage: i32,
     pub clear1: i32,
     pub clear2: i32,
@@ -92,7 +93,8 @@ impl Evaluator {
                 reward += self.b2b_clear;
             }
 
-            reward += last_action.combo as i32 * self.combo_garbage;
+            reward += last_action.perfect_clear as i32 * self.perfect_clear;
+            reward += combo_attack(last_action.combo) as i32 * self.combo_garbage;
 
             match last_action.placement_kind {
                 tetris::PlacementKind::Clear1 => reward += self.clear1,

@@ -41,7 +41,13 @@ impl<'a> Node<'a> {
         self.reward + self.value + (((C * log_parent_n) as f64 / self.n as f64).sqrt()) as i32
     }
 
-    pub fn best_child(&mut self) -> Option<&mut Node<'a>> {
+    pub fn best_child(&self) -> Option<&Node<'a>> {
+        self.children
+            .iter()
+            .max_by_key(|child| child.reward + child.value)
+    }
+
+    pub fn best_ucb_child(&mut self) -> Option<&mut Node<'a>> {
         self.children
             .iter_mut()
             .max_by_key(|child| child.ucb(self.n))
@@ -75,7 +81,7 @@ impl<'a> Node<'a> {
                 .max()
                 .unwrap_or(self.reward + self.value)
         } else {
-            let best_child = self.best_child().unwrap();
+            let best_child = self.best_ucb_child().unwrap();
             best_child.search()
         };
 

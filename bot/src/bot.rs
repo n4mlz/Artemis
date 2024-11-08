@@ -19,9 +19,6 @@ impl Bot {
         root.search();
         // }
 
-        match root.best_child() {
-            Some(best_child) => Some(best_child.state.clone()),
-            None => None,
-        }
+        root.best_child().map(|best_child| best_child.state.clone())
     }
 }

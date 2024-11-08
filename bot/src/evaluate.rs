@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use tetris::{row_x, Board, State};
+use tetris::{Board, State};
 
 pub type Score = i32;
 pub type Reward = Score;
@@ -17,13 +17,10 @@ pub struct Evaluator {
     pub overhangs_sq: i32,
     pub covers: i32,
     pub covers_sq: i32,
-    pub well_scale: [i32; 5],
     pub well_depth_1: i32,
     pub well_depth_1_sq: i32,
     pub well_depth_2: i32,
     pub well_depth_2_sq: i32,
-    pub well_clearable_lines: i32,
-    pub well_clearable_lines_sq: i32,
     pub hight: i32,
     pub hight_sq: i32,
     pub b2b: i32,
@@ -58,25 +55,13 @@ impl Evaluator {
         value += covers * self.covers;
         value += covers * covers * self.covers_sq;
 
-        let well_scale = [0; 10]
-            .iter()
-            .map(|&v| self.well_scale[adjusted_index(v)])
-            .collect_vec();
-
         let well_depths = well_depths(&state.board);
-        let well_col = deepest_well_collumn(&well_depths);
 
         let (depth_1, depth_2) = two_deepest_well_depths(&well_depths);
-        value += depth_1 * scale_by_rate(self.well_depth_1, well_scale[well_col]);
-        value += depth_1 * depth_1 * scale_by_rate(self.well_depth_1_sq, well_scale[well_col]);
-        value += depth_2 * scale_by_rate(self.well_depth_2, well_scale[well_col]);
-        value += depth_2 * depth_2 * scale_by_rate(self.well_depth_2_sq, well_scale[well_col]);
-
-        let clearables = deepest_well_clearable_lines(&state.board, well_col);
-        value += clearables * scale_by_rate(self.well_clearable_lines, well_scale[well_col]);
-        value += clearables
-            * clearables
-            * scale_by_rate(self.well_clearable_lines_sq, well_scale[well_col]);
+        value += depth_1 * self.well_depth_1;
+        value += depth_1 * depth_1 * self.well_depth_1_sq;
+        value += depth_2 * self.well_depth_2;
+        value += depth_2 * depth_2 * self.well_depth_2_sq;
 
         let hight = hight(&state.board);
         value += hight * self.hight;
@@ -172,19 +157,6 @@ fn covers(board: &Board) -> i32 {
     covers
 }
 
-fn adjusted_index(index: usize) -> usize {
-    if index < 5 {
-        index
-    } else {
-        9 - index
-    }
-}
-
-fn scale_by_rate(value: i32, rate: i32) -> i32 {
-    const MAX_SCALE: i32 = 1000;
-    value * rate / MAX_SCALE
-}
-
 fn well_depths(board: &Board) -> [i32; 10] {
     let mut well_depths = [0; 10];
     for x in 0..10 {
@@ -203,18 +175,6 @@ fn well_depths(board: &Board) -> [i32; 10] {
     well_depths
 }
 
-// TODO: consider the case where A does not exist
-fn deepest_well_collumn(well_depths: &[i32; 10]) -> usize {
-    let mut col = 0;
-    for i in 1..10 {
-        if well_depths[i] > well_depths[col] {
-            col = i;
-        }
-    }
-    col
-}
-
-// TODO: consider the case where A does not exist
 fn two_deepest_well_depths(well_depths: &[i32; 10]) -> (i32, i32) {
     well_depths
         .iter()
@@ -223,19 +183,6 @@ fn two_deepest_well_depths(well_depths: &[i32; 10]) -> (i32, i32) {
         .copied()
         .collect_tuple()
         .unwrap()
-}
-
-// TODO: consider the case where A does not exist
-// TODO: fix (columns with clearable wells are not always the deepest wells)
-fn deepest_well_clearable_lines(board: &Board, well_col: usize) -> i32 {
-    let mut clearable_lines = 0;
-    for y in board.collumn_heights[well_col]..20 {
-        if (board.cells[y as usize] | row_x(well_col as i32)) != 0x3ff {
-            break;
-        }
-        clearable_lines += 1;
-    }
-    clearable_lines
 }
 
 fn hight(board: &Board) -> i32 {
@@ -256,14 +203,8 @@ pub fn debug_evaluation(state: &State) {
     let well_depths = well_depths(&state.board);
     println!("well_depths: {:?}", well_depths);
 
-    let well_col = deepest_well_collumn(&well_depths);
-    println!("well_col: {}", well_col);
-
     let (depth_1, depth_2) = two_deepest_well_depths(&well_depths);
     println!("depth_1: {}, depth_2: {}", depth_1, depth_2);
-
-    let clearables = deepest_well_clearable_lines(&state.board, well_col);
-    println!("clearables: {}", clearables);
 
     let hight = hight(&state.board);
     println!("hight: {}", hight);

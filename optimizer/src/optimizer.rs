@@ -13,11 +13,11 @@ use std::{
 };
 
 // adjust the diversity of the population
-const POPULATION_SIZE: usize = 1000;
+const POPULATION_SIZE: usize = 500;
 // adjust the accuracy of the evaluation
 const MATCH_COUNT: usize = 8;
 // adjust selection pressure
-const SELECTION_SIZE: usize = 50;
+const SELECTION_SIZE: usize = 30;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Population {

@@ -8,7 +8,7 @@ pub trait Gene {
 
 impl Gene for i32 {
     fn generate() -> Self {
-        thread_rng().gen_range(-10..=10)
+        thread_rng().gen_range(-30..=30)
     }
 
     fn crossover(v1: &Self, v2: &Self) -> i32 {
@@ -18,8 +18,8 @@ impl Gene for i32 {
             0..=41 => *v1,                  // 42%
             42..=83 => *v2,                 // 42%
             84..=98 => (v1 + v2) / 2,       // 15%
-            _ => rng.gen_range(-150..=150), // 1%
-        } + rng.gen_range(-10..=10))
+            _ => rng.gen_range(-300..=300), // 1%
+        } + rng.gen_range(-30..=30))
     }
 }
 

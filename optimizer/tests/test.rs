@@ -1,6 +1,8 @@
 use itertools::Itertools;
 use optimizer::*;
 
+const EVALUATOR_REPEAT: u32 = 10;
+
 #[test]
 fn replay_population() {
     let path = "../population.json";
@@ -37,7 +39,7 @@ fn replay_bot() {
         println!("{}", current_state);
         bot::debug_evaluation(&current_state);
 
-        if let Some(next_state) = bot.get_move(current_state.clone()) {
+        if let Some(next_state) = bot.get_move_for_count(current_state.clone(), EVALUATOR_REPEAT) {
             current_state = next_state.clone();
             if current_state.next_pieces.len() < 8 {
                 current_state.extend_next_pieces();

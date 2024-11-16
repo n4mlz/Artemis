@@ -2,6 +2,8 @@ const MARGIN_TIME: u32 = 1000;
 // gababe increase rate per 1000 time
 const GABAGE_INCREASE: f64 = 1.1;
 
+const EVALUATOR_REPEAT: u32 = 10;
+
 pub struct BattleResult {
     pub attack: u32,
     pub time: u32,
@@ -60,7 +62,7 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> (BattleResult, Ba
                 );
             }
 
-            if let Some(new_state) = p1.get_move(p1_state.clone()) {
+            if let Some(new_state) = p1.get_move_for_count(p1_state.clone(), EVALUATOR_REPEAT) {
                 p1_state = new_state;
                 if p1_state.next_pieces.len() < 8 {
                     p1_state.extend_next_pieces();
@@ -115,7 +117,7 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> (BattleResult, Ba
                 );
             }
 
-            if let Some(new_state) = p2.get_move(p2_state.clone()) {
+            if let Some(new_state) = p2.get_move_for_count(p2_state.clone(), EVALUATOR_REPEAT) {
                 p2_state = new_state;
                 if p2_state.next_pieces.len() < 8 {
                     p2_state.extend_next_pieces();

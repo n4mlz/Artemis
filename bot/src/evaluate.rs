@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use tetris::{combo_attack, Board, State};
+use tetris::{combo_attack, row_x, Board, State};
 
 pub type Score = i32;
 pub type Reward = Score;
@@ -21,6 +21,8 @@ pub struct Evaluator {
     pub well_depth_1_sq: i32,
     pub well_depth_2: i32,
     pub well_depth_2_sq: i32,
+    pub clearable_lines: i32,
+    pub clearable_lines_sq: i32,
     pub hight: i32,
     pub hight_sq: i32,
     pub b2b: i32,
@@ -63,6 +65,10 @@ impl Evaluator {
         value += depth_1 * depth_1 * self.well_depth_1_sq;
         value += depth_2 * self.well_depth_2;
         value += depth_2 * depth_2 * self.well_depth_2_sq;
+
+        let clearable_lines = clearable_lines(&state.board);
+        value += clearable_lines * self.clearable_lines;
+        value += clearable_lines * clearable_lines * self.clearable_lines_sq;
 
         let hight = hight(&state.board);
         value += hight * self.hight;
@@ -189,6 +195,25 @@ fn two_deepest_well_depths(well_depths: &[i32; 10]) -> (i32, i32) {
         .unwrap()
 }
 
+fn clearable_lines(board: &Board) -> i32 {
+    let x = board
+        .collumn_heights
+        .iter()
+        .enumerate()
+        .min_by_key(|(_, &h)| h)
+        .unwrap()
+        .0;
+
+    let mut clearable_lines = 0;
+    for y in board.collumn_heights[x]..20 {
+        if (board.cells[y as usize] | row_x(x as i32)) != 0x3ff {
+            break;
+        }
+        clearable_lines += 1;
+    }
+    clearable_lines
+}
+
 fn hight(board: &Board) -> i32 {
     *board.collumn_heights.iter().max().unwrap() as i32
 }
@@ -209,6 +234,9 @@ pub fn debug_evaluation(state: &State) {
 
     let (depth_1, depth_2) = two_deepest_well_depths(&well_depths);
     println!("depth_1: {}, depth_2: {}", depth_1, depth_2);
+
+    let clearable_lines = clearable_lines(&state.board);
+    println!("clearable_lines: {}", clearable_lines);
 
     let hight = hight(&state.board);
     println!("hight: {}", hight);

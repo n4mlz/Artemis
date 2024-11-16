@@ -114,6 +114,8 @@ fn bumpiness(board: &Board) -> i32 {
     for x in 0..9 {
         bumpiness += (board.collumn_heights[x] as i32 - board.collumn_heights[x + 1] as i32).abs();
     }
+    bumpiness += (board.collumn_heights[0] as i32 - board.collumn_heights[1] as i32).abs();
+    bumpiness += (board.collumn_heights[8] as i32 - board.collumn_heights[9] as i32).abs();
     bumpiness
 }
 

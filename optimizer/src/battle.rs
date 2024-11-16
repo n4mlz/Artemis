@@ -2,10 +2,19 @@ const MARGIN_TIME: u32 = 1000;
 // gababe increase rate per 1000 time
 const GABAGE_INCREASE: f64 = 1.1;
 
+pub struct BattleResult {
+    pub attack: u32,
+    pub time: u32,
+    pub win: bool,
+}
+
 // returns true if p1 wins, false if p2 wins
 // urrent implementation has the attack occur at the end of the turn with the attack (just before the next move begins)
 // TODO: allow more accurate simulation of attack timing
-pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
+pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> (BattleResult, BattleResult) {
+    let mut p1_attack_sum = 0;
+    let mut p2_attack_sum = 0;
+
     let mut p1_state = tetris::State::new_random_state();
     let mut p2_state = tetris::State::new_random_state();
 
@@ -37,7 +46,18 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
             }
 
             if p1_state.is_dead() {
-                return false;
+                return (
+                    BattleResult {
+                        attack: p1_attack_sum,
+                        time: p1_time,
+                        win: false,
+                    },
+                    BattleResult {
+                        attack: p2_attack_sum,
+                        time: p2_time,
+                        win: true,
+                    },
+                );
             }
 
             if let Some(new_state) = p1.get_move(p1_state.clone()) {
@@ -46,11 +66,25 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
                     p1_state.extend_next_pieces();
                 }
             } else {
-                return false;
+                return (
+                    BattleResult {
+                        attack: p1_attack_sum,
+                        time: p1_time,
+                        win: false,
+                    },
+                    BattleResult {
+                        attack: p2_attack_sum,
+                        time: p2_time,
+                        win: true,
+                    },
+                );
             }
 
             p1_time += p1_state.last_action.clone().unwrap().time;
-            p1_attack += p1_state.last_action.clone().unwrap().garbage_sent;
+
+            let garbage_sent = p1_state.last_action.clone().unwrap().garbage_sent;
+            p1_attack += garbage_sent;
+            p1_attack_sum += garbage_sent;
         } else {
             let increase_rate = GABAGE_INCREASE
                 .powf(((p2_time as i32 - MARGIN_TIME as i32).max(0) as f64) / 1000.0);
@@ -67,7 +101,18 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
             }
 
             if p2_state.is_dead() {
-                return true;
+                return (
+                    BattleResult {
+                        attack: p1_attack_sum,
+                        time: p1_time,
+                        win: true,
+                    },
+                    BattleResult {
+                        attack: p2_attack_sum,
+                        time: p2_time,
+                        win: false,
+                    },
+                );
             }
 
             if let Some(new_state) = p2.get_move(p2_state.clone()) {
@@ -76,11 +121,25 @@ pub fn do_battle(p1: &bot::Bot, p2: &bot::Bot, debug: bool) -> bool {
                     p2_state.extend_next_pieces();
                 }
             } else {
-                return true;
+                return (
+                    BattleResult {
+                        attack: p1_attack_sum,
+                        time: p1_time,
+                        win: true,
+                    },
+                    BattleResult {
+                        attack: p2_attack_sum,
+                        time: p2_time,
+                        win: false,
+                    },
+                );
             }
 
             p2_time += p2_state.last_action.clone().unwrap().time;
-            p2_attack += p2_state.last_action.clone().unwrap().garbage_sent;
+
+            let garbage_sent = p2_state.last_action.clone().unwrap().garbage_sent;
+            p2_attack += garbage_sent;
+            p2_attack_sum += garbage_sent;
         }
 
         if debug {

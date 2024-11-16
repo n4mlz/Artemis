@@ -88,10 +88,18 @@ impl Population {
                             let p1 = Bot::new(members[i].lock().unwrap().evaluator);
                             let p2 = Bot::new(members[j].lock().unwrap().evaluator);
 
-                            let win = do_battle(&p1, &p2, false);
+                            let (p1, p2) = do_battle(&p1, &p2, false);
 
-                            members[i].lock().unwrap().score.update(win);
-                            members[j].lock().unwrap().score.update(!win);
+                            members[i]
+                                .lock()
+                                .unwrap()
+                                .score
+                                .update(p1.attack, p1.time, p1.win);
+                            members[j]
+                                .lock()
+                                .unwrap()
+                                .score
+                                .update(p2.attack, p2.time, p2.win);
                         }
                     }
 

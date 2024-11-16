@@ -9,25 +9,26 @@ use serde::{Deserialize, Serialize};
 use std::{
     fs::File,
     io::{Read, Write},
+    sync::{Arc, Mutex},
 };
 
 // adjust the diversity of the population
-const POPULATION_SIZE: usize = 100;
+const POPULATION_SIZE: usize = 300;
 // adjust the accuracy of the evaluation
-const MATCH_COUNT: usize = 30;
+const MATCH_COUNT: usize = 8;
 // adjust selection pressure
-const SELECTION_SIZE: usize = 10;
+const SELECTION_SIZE: usize = 20;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Population {
-    generation: u32,
-    members: Vec<Member>,
+    pub generation: u32,
+    pub members: Vec<Member>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-struct Member {
-    evaluator: Evaluator,
-    score: Option<Score>,
+pub struct Member {
+    pub evaluator: Evaluator,
+    pub score: Score,
 }
 
 impl Population {
@@ -36,7 +37,7 @@ impl Population {
         for _ in 0..POPULATION_SIZE {
             members.push(Member {
                 evaluator: Evaluator::generate(),
-                score: None,
+                score: Score::new(),
             });
         }
 
@@ -63,47 +64,60 @@ impl Population {
     }
 
     fn evaluate(&mut self) {
-        for i in 0..POPULATION_SIZE {
-            println!("member: {}", i);
+        let members: Arc<Vec<Mutex<Member>>> =
+            Arc::new(self.members.clone().into_iter().map(Mutex::new).collect());
 
-            if self.members[i].score.is_none() {
-                self.members[i].score = Some(Score::new());
+        let generation = self.generation;
+        let count = Arc::new(Mutex::new(0));
+
+        {
+            let thread_num = num_cpus::get();
+            let pool = ThreadPool::new(thread_num);
+
+            for i in 0..POPULATION_SIZE {
+                let members = Arc::clone(&members);
+                let count = Arc::clone(&count);
+
+                pool.execute(move || {
+                    let mut rng = thread_rng();
+                    let opponents_index =
+                        (0..POPULATION_SIZE).choose_multiple(&mut rng, MATCH_COUNT);
+
+                    for j in opponents_index {
+                        {
+                            let p1 = Bot::new(members[i].lock().unwrap().evaluator);
+                            let p2 = Bot::new(members[j].lock().unwrap().evaluator);
+
+                            let (p1, p2) = do_battle(&p1, &p2, false);
+
+                            members[i]
+                                .lock()
+                                .unwrap()
+                                .score
+                                .update(p1.attack, p1.time, p1.win);
+                            members[j]
+                                .lock()
+                                .unwrap()
+                                .score
+                                .update(p2.attack, p2.time, p2.win);
+                        }
+                    }
+
+                    let mut count = count.lock().unwrap();
+                    *count += 1;
+                    debug_optimizer(generation, *count);
+                });
             }
-
-            let mut rng = thread_rng();
-            let opponents_index = (0..POPULATION_SIZE).choose_multiple(&mut rng, MATCH_COUNT);
-
-            for j in opponents_index {
-                if self.members[j].score.is_none() {
-                    self.members[j].score = Some(Score::new());
-                }
-
-                let p1 = Bot::new(self.members[i].evaluator);
-                let p2 = Bot::new(self.members[j].evaluator);
-
-                let win = do_battle(&p1, &p2);
-                self.members[i].score.as_mut().unwrap().update(win);
-                self.members[j].score.as_mut().unwrap().update(!win);
-
-                println!("{}", if win { "win" } else { "lose" });
-            }
-
-            println!(
-                "win rate: {}",
-                self.members[i].score.as_ref().unwrap().win_rate()
-            );
         }
+
+        self.members = members.iter().map(|m| m.lock().unwrap().clone()).collect();
     }
 
     fn select(&self) -> (&Member, &Member) {
         let mut rng = thread_rng();
         let group = self.members.choose_multiple(&mut rng, SELECTION_SIZE);
         group
-            .sorted_by(|a, b| {
-                let a_score = a.score.as_ref().unwrap();
-                let b_score = b.score.as_ref().unwrap();
-                b_score.cmp(a_score)
-            })
+            .sorted_by(|a, b| b.score.cmp(&a.score))
             .take(2)
             .next_tuple()
             .unwrap()
@@ -114,11 +128,7 @@ impl Population {
         let mut new_members: Vec<_> = self
             .members
             .iter()
-            .sorted_by(|a, b| {
-                let a_score = a.score.as_ref().unwrap();
-                let b_score = b.score.as_ref().unwrap();
-                b_score.cmp(a_score)
-            })
+            .sorted_by(|a, b| b.score.cmp(&a.score))
             .take(2)
             .cloned()
             .collect();
@@ -129,7 +139,7 @@ impl Population {
             let evaluator = Evaluator::crossover(&parent1.evaluator, &parent2.evaluator);
             new_members.push(Member {
                 evaluator,
-                score: None,
+                score: Score::new(),
             });
         }
 
@@ -140,8 +150,19 @@ impl Population {
     }
 
     pub fn optimize(&mut self) -> Self {
-        println!("generation: {}", self.generation);
         self.evaluate();
         self.crossover()
     }
+}
+
+fn debug_optimizer(generation: u32, member: usize) {
+    println!("{}", termion::cursor::Show);
+    println!("generation: {}", generation);
+    println!(
+        "member: {:4} / {} ({:5.1} %)",
+        member,
+        POPULATION_SIZE,
+        member as f64 / POPULATION_SIZE as f64 * 100.0
+    );
+    println!("{}{}", termion::cursor::Up(4), termion::cursor::Hide);
 }

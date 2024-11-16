@@ -1,34 +1,42 @@
 use serde::{Deserialize, Serialize};
 
+// the attenuation rate of attack when losing
+const LOSE_RATE: f64 = 0.5;
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
 pub struct Score {
-    matches: u32,
-    wins: u32,
+    time: u32,
+    attack: u32,
 }
 
 impl Score {
     pub fn new() -> Self {
-        Score {
-            matches: 0,
-            wins: 0,
-        }
+        Score { time: 0, attack: 0 }
     }
 
-    pub fn update(&mut self, win: bool) {
-        self.matches += 1;
-        if win {
-            self.wins += 1;
-        }
+    pub fn update(&mut self, attack: u32, time: u32, win: bool) {
+        self.time += time;
+        self.attack += if win {
+            attack
+        } else {
+            (attack as f64 * LOSE_RATE) as u32
+        };
     }
 
-    pub fn win_rate(&self) -> f64 {
-        self.wins as f64 / self.matches as f64
+    fn attack_per_time(&self) -> f64 {
+        if self.time == 0 {
+            0.0
+        } else {
+            self.attack as f64 / self.time as f64
+        }
     }
 }
 
 impl Ord for Score {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.win_rate().partial_cmp(&other.win_rate()).unwrap()
+        self.attack_per_time()
+            .partial_cmp(&other.attack_per_time())
+            .unwrap()
     }
 }
 

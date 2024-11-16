@@ -21,4 +21,4 @@ target/
 #.idea/
 
 # custom
-population.json
+population*.json

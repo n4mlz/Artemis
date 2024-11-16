@@ -15,16 +15,16 @@ pub struct ActionTime {
 
 // TODO: make the value correct
 pub const DEFAULT_ACTION_TIME: ActionTime = ActionTime {
-    move_one: 100,
-    hard_drop: 100,
-    rotate: 100,
-    hold: 100,
-    place: 100,
-    single: 100,
-    double: 100,
-    triple: 100,
-    tetris: 100,
-    perfect_clear: 100,
+    move_one: 1,
+    hard_drop: 1,
+    rotate: 1,
+    hold: 1,
+    place: 6,
+    single: 50,
+    double: 50,
+    triple: 50,
+    tetris: 50,
+    perfect_clear: 1,
 };
 
 // TODO: make the value correct

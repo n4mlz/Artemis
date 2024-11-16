@@ -8,19 +8,18 @@ pub trait Gene {
 
 impl Gene for i32 {
     fn generate() -> Self {
-        thread_rng().gen_range(-999..=999)
+        thread_rng().gen_range(-30..=30)
     }
 
     fn crossover(v1: &Self, v2: &Self) -> i32 {
         let mut rng = thread_rng();
-        let v = match rng.gen_range(0..100) {
+
+        (match rng.gen_range(0..100) {
             0..=41 => *v1,                  // 42%
             42..=83 => *v2,                 // 42%
             84..=98 => (v1 + v2) / 2,       // 15%
-            _ => rng.gen_range(-999..=999), // 1%
-        } + rng.gen_range(-10..=10);
-
-        v.clamp(-999, 999)
+            _ => rng.gen_range(-300..=300), // 1%
+        } + rng.gen_range(-30..=30))
     }
 }
 
@@ -35,21 +34,27 @@ impl Gene for Evaluator {
             overhangs_sq: i32::generate(),
             covers: i32::generate(),
             covers_sq: i32::generate(),
-            well_scale: [i32::generate(); 5],
             well_depth_1: i32::generate(),
             well_depth_1_sq: i32::generate(),
             well_depth_2: i32::generate(),
             well_depth_2_sq: i32::generate(),
-            well_clearable_lines: i32::generate(),
-            well_clearable_lines_sq: i32::generate(),
+            clearable_lines: i32::generate(),
+            clearable_lines_sq: i32::generate(),
             hight: i32::generate(),
             hight_sq: i32::generate(),
             b2b: i32::generate(),
-            holding: [i32::generate(); 5],
+            holding: [
+                i32::generate(),
+                i32::generate(),
+                i32::generate(),
+                i32::generate(),
+                i32::generate(),
+            ],
 
             move_time: i32::generate(),
             wasted_i: i32::generate(),
             b2b_clear: i32::generate(),
+            perfect_clear: i32::generate(),
             combo_garbage: i32::generate(),
             clear1: i32::generate(),
             clear2: i32::generate(),
@@ -68,24 +73,14 @@ impl Gene for Evaluator {
             overhangs_sq: i32::crossover(&parent1.overhangs_sq, &parent2.overhangs_sq),
             covers: i32::crossover(&parent1.covers, &parent2.covers),
             covers_sq: i32::crossover(&parent1.covers_sq, &parent2.covers_sq),
-            well_scale: [
-                i32::crossover(&parent1.well_scale[0], &parent2.well_scale[0]),
-                i32::crossover(&parent1.well_scale[1], &parent2.well_scale[1]),
-                i32::crossover(&parent1.well_scale[2], &parent2.well_scale[2]),
-                i32::crossover(&parent1.well_scale[3], &parent2.well_scale[3]),
-                i32::crossover(&parent1.well_scale[4], &parent2.well_scale[4]),
-            ],
             well_depth_1: i32::crossover(&parent1.well_depth_1, &parent2.well_depth_1),
             well_depth_1_sq: i32::crossover(&parent1.well_depth_1_sq, &parent2.well_depth_1_sq),
             well_depth_2: i32::crossover(&parent1.well_depth_2, &parent2.well_depth_2),
             well_depth_2_sq: i32::crossover(&parent1.well_depth_2_sq, &parent2.well_depth_2_sq),
-            well_clearable_lines: i32::crossover(
-                &parent1.well_clearable_lines,
-                &parent2.well_clearable_lines,
-            ),
-            well_clearable_lines_sq: i32::crossover(
-                &parent1.well_clearable_lines_sq,
-                &parent2.well_clearable_lines_sq,
+            clearable_lines: i32::crossover(&parent1.clearable_lines, &parent2.clearable_lines),
+            clearable_lines_sq: i32::crossover(
+                &parent1.clearable_lines_sq,
+                &parent2.clearable_lines_sq,
             ),
             hight: i32::crossover(&parent1.hight, &parent2.hight),
             hight_sq: i32::crossover(&parent1.hight_sq, &parent2.hight_sq),
@@ -101,6 +96,7 @@ impl Gene for Evaluator {
             move_time: i32::crossover(&parent1.move_time, &parent2.move_time),
             wasted_i: i32::crossover(&parent1.wasted_i, &parent2.wasted_i),
             b2b_clear: i32::crossover(&parent1.b2b_clear, &parent2.b2b_clear),
+            perfect_clear: i32::crossover(&parent1.perfect_clear, &parent2.perfect_clear),
             combo_garbage: i32::crossover(&parent1.combo_garbage, &parent2.combo_garbage),
             clear1: i32::crossover(&parent1.clear1, &parent2.clear1),
             clear2: i32::crossover(&parent1.clear2, &parent2.clear2),

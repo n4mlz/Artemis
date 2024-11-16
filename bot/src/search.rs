@@ -6,7 +6,7 @@ use tetris::State;
 const C: u32 = 100;
 
 // discount factor for future rewards
-const GAMMA: f64 = 0.95;
+const GAMMA: f64 = 0.9;
 
 // update rate for value
 const UPDATE_RATE: f64 = 0.1;

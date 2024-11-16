@@ -12,10 +12,10 @@ impl Bot {
         Self { evaluator }
     }
 
-    pub fn get_move_for_count(&self, state: State, count: u32) -> Option<State> {
+    pub fn get_move_for_repeat(&self, state: State, repeat: u32) -> Option<State> {
         let mut root = Node::new(&self.evaluator, state);
 
-        for _ in 0..count {
+        for _ in 0..repeat {
             root.search();
         }
 

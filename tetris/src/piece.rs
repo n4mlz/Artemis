@@ -85,28 +85,38 @@ impl PieceState {
     // TODO: fix clippy warning
     pub fn cells(&self) -> [Position; 4] {
         macro_rules! generate_cells {
-            ($([$(($x:expr, $y:expr)),*]),*) => {
-                [$(
-                    [$(($x, $y)),*],   // North
-                    [$(($y, -$x)),*],  // East
-                    [$((-$x, -$y)),*], // South
-                    [$((-$y, $x)),*]   // West
-                ),*]
+            (@normal [$(($x:expr, $y:expr)),*]) => {
+                [
+                    [$(($x, $y)),*],         // North
+                    [$(($y, -$x)),*],        // East
+                    [$((-$x, -$y)),*],       // South
+                    [$((-$y, $x)),*]         // West
+                ]
+            };
+            (@i_piece [$(($x:expr, $y:expr)),*]) => {
+                [
+                    [$(($x, $y)),*],              // North
+                    [$(($y + 1, -$x)),*],         // East
+                    [$((-$x + 1, -$y - 1)),*],    // South
+                    [$((-$y, $x - 1)),*]          // West
+                ]
+            };
+            () => {
+                [
+                    generate_cells!(@normal [(-1, 0), (0, 0), (0, 1), (1, 1)]),     // S
+                    generate_cells!(@normal [(-1, 1), (0, 1), (0, 0), (1, 0)]),     // Z
+                    generate_cells!(@normal [(-1, 0), (0, 0), (1, 0), (-1, 1)]),    // J
+                    generate_cells!(@normal [(-1, 0), (0, 0), (1, 0), (1, 1)]),     // L
+                    generate_cells!(@normal [(-1, 0), (0, 0), (1, 0), (0, 1)]),     // T
+                    generate_cells!(@normal [(0, 0), (1, 0), (0, -1), (1, -1)]),    // O
+                    generate_cells!(@i_piece [(-1, 0), (0, 0), (1, 0), (2, 0)])     // I
+                ]
             };
         }
 
-        const CELLS: &[[Position; 4]] = &generate_cells!(
-            [(-1, 0), (0, 0), (0, 1), (1, 1)],  // S
-            [(-1, 1), (0, 1), (0, 0), (1, 0)],  // Z
-            [(-1, 0), (0, 0), (1, 0), (-1, 1)], // J
-            [(-1, 0), (0, 0), (1, 0), (1, 1)],  // L
-            [(-1, 0), (0, 0), (1, 0), (0, 1)],  // T
-            [(0, 0), (1, 0), (0, -1), (1, -1)], // O
-            [(-1, 0), (0, 0), (1, 0), (2, 0)]   // I
-        );
+        const CELLS: &[[[Position; 4]; 4]; 7] = &generate_cells!();
 
-        let index = self.piece as usize * 4 + self.rotation as usize;
-        CELLS[index]
+        CELLS[self.piece as usize][self.rotation as usize]
     }
 }
 

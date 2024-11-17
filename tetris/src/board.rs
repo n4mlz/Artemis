@@ -257,6 +257,7 @@ impl Board {
 
                 // check if the SRS works correctly
                 PieceMovement::RotateLeft => {
+                    // check if the following kick table is correct
                     const KICK_TABLE_NORMAL: [[(i32, i32); 5]; 4] = [
                         [(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)],
                         [(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],
@@ -314,6 +315,7 @@ impl Board {
 
                 // check if the SRS works correctly
                 PieceMovement::RotateRight => {
+                    // check if the following kick table is correct
                     const KICK_TABLE_NORMAL: [[(i32, i32); 5]; 4] = [
                         [(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],
                         [(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],

@@ -255,27 +255,117 @@ impl Board {
                     result.push(new_movement_state);
                 }
 
-                // TODO: SRS
+                // check if the SRS works correctly
                 PieceMovement::RotateLeft => {
+                    const KICK_TABLE_NORMAL: [[(i32, i32); 5]; 4] = [
+                        [(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)],
+                        [(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],
+                        [(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],
+                        [(0, 0), (-1, 0), (-1, -1), (0, 2), (-1, 2)],
+                    ];
+
+                    const KICK_TABLE_I: [[(i32, i32); 5]; 4] = [
+                        [(0, 0), (-1, 0), (2, 0), (-1, 2), (2, -1)],
+                        [(0, 0), (2, 0), (-1, 0), (2, 1), (-1, -2)],
+                        [(0, 0), (1, 0), (-2, 0), (1, -2), (-2, 1)],
+                        [(0, 0), (1, 0), (-2, 0), (-2, -1), (1, 2)],
+                    ];
+
                     let new_field_piece = movement_state.field_piece.rotate_left();
-                    if self.attempt(new_field_piece) {
-                        result.push(movement_state.next_movement_state(
-                            new_field_piece,
-                            piece_movement,
-                            DEFAULT_ACTION_TIME.rotate,
-                        ));
+
+                    match movement_state.field_piece.piece_state.piece {
+                        Piece::O => {
+                            if self.attempt(new_field_piece) {
+                                result.push(movement_state.next_movement_state(
+                                    new_field_piece,
+                                    piece_movement,
+                                    DEFAULT_ACTION_TIME.rotate,
+                                ));
+                            }
+                        }
+                        Piece::I => {
+                            for kick in KICK_TABLE_I.iter() {
+                                let srs_field_piece = new_field_piece.move_by(kick[0].0, kick[0].1);
+                                if self.attempt(srs_field_piece) {
+                                    result.push(movement_state.next_movement_state(
+                                        srs_field_piece,
+                                        piece_movement,
+                                        DEFAULT_ACTION_TIME.rotate,
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
+                        _ => {
+                            for kick in KICK_TABLE_NORMAL.iter() {
+                                let srs_field_piece = new_field_piece.move_by(kick[0].0, kick[0].1);
+                                if self.attempt(srs_field_piece) {
+                                    result.push(movement_state.next_movement_state(
+                                        srs_field_piece,
+                                        piece_movement,
+                                        DEFAULT_ACTION_TIME.rotate,
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
 
-                // TODO: SRS
+                // check if the SRS works correctly
                 PieceMovement::RotateRight => {
+                    const KICK_TABLE_NORMAL: [[(i32, i32); 5]; 4] = [
+                        [(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],
+                        [(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],
+                        [(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)],
+                        [(0, 0), (-2, 0), (-2, -1), (0, 2), (-1, 2)],
+                    ];
+
+                    const KICK_TABLE_I: [[(i32, i32); 5]; 4] = [
+                        [(0, 0), (-2, 0), (1, 0), (-2, -1), (1, 2)],
+                        [(0, 0), (-1, 0), (2, 0), (-1, 2), (2, -1)],
+                        [(0, 0), (2, 0), (-1, 0), (2, 1), (-1, -2)],
+                        [(0, 0), (-2, 0), (1, 0), (1, -2), (-2, 1)],
+                    ];
+
                     let new_field_piece = movement_state.field_piece.rotate_right();
-                    if self.attempt(new_field_piece) {
-                        result.push(movement_state.next_movement_state(
-                            new_field_piece,
-                            piece_movement,
-                            DEFAULT_ACTION_TIME.rotate,
-                        ));
+
+                    match movement_state.field_piece.piece_state.piece {
+                        Piece::O => {
+                            if self.attempt(new_field_piece) {
+                                result.push(movement_state.next_movement_state(
+                                    new_field_piece,
+                                    piece_movement,
+                                    DEFAULT_ACTION_TIME.rotate,
+                                ));
+                            }
+                        }
+                        Piece::I => {
+                            for kick in KICK_TABLE_I.iter() {
+                                let srs_field_piece = new_field_piece.move_by(kick[0].0, kick[0].1);
+                                if self.attempt(srs_field_piece) {
+                                    result.push(movement_state.next_movement_state(
+                                        srs_field_piece,
+                                        piece_movement,
+                                        DEFAULT_ACTION_TIME.rotate,
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
+                        _ => {
+                            for kick in KICK_TABLE_NORMAL.iter() {
+                                let srs_field_piece = new_field_piece.move_by(kick[0].0, kick[0].1);
+                                if self.attempt(srs_field_piece) {
+                                    result.push(movement_state.next_movement_state(
+                                        srs_field_piece,
+                                        piece_movement,
+                                        DEFAULT_ACTION_TIME.rotate,
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
 

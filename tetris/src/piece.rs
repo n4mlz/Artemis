@@ -121,17 +121,10 @@ impl PieceState {
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum SuperRotationState {
-    None,
-    Mini, // T-spin only
-    Normal,
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct FieldPiece {
     pub piece_state: PieceState,
     pub position: Position,
-    pub super_rotation_state: SuperRotationState,
+    pub super_rotation_state: Option<u32>, // Some: 0, 1, 2, 3
     pub is_locked: bool,
 }
 
@@ -143,7 +136,7 @@ impl FieldPiece {
                 rotation: RotationState::North,
             },
             position: piece.initial_position(),
-            super_rotation_state: SuperRotationState::None,
+            super_rotation_state: None,
             is_locked: false,
         }
     }
@@ -156,6 +149,7 @@ impl FieldPiece {
     pub fn move_by(&self, dx: i32, dy: i32) -> FieldPiece {
         FieldPiece {
             position: (self.position.0 + dx, self.position.1 + dy),
+            super_rotation_state: None,
             ..*self
         }
     }
@@ -163,6 +157,7 @@ impl FieldPiece {
     pub fn rotate_left(&self) -> FieldPiece {
         FieldPiece {
             piece_state: self.piece_state.rotate_left(),
+            super_rotation_state: None,
             ..*self
         }
     }
@@ -170,6 +165,14 @@ impl FieldPiece {
     pub fn rotate_right(&self) -> FieldPiece {
         FieldPiece {
             piece_state: self.piece_state.rotate_right(),
+            super_rotation_state: None,
+            ..*self
+        }
+    }
+
+    pub fn set_super_rotation_state(&self, state: u32) -> FieldPiece {
+        FieldPiece {
+            super_rotation_state: Some(state),
             ..*self
         }
     }

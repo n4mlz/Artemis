@@ -90,7 +90,7 @@ impl State {
     fn next_state(&self, mut movement_state: MovementState, time: Time) -> State {
         use PlacementKind::*;
 
-        let (new_board, placement_kind) = self.board.place_piece(movement_state.field_piece);
+        let (new_board, placement_kind) = self.board.place_piece(&movement_state);
 
         if placement_kind == PlacementKind::None {
             return State {

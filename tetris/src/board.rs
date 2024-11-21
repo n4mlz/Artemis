@@ -255,27 +255,119 @@ impl Board {
                     result.push(new_movement_state);
                 }
 
-                // TODO: SRS
+                // check if the SRS works correctly
                 PieceMovement::RotateLeft => {
+                    // check if the following kick table is correct
+                    const KICK_TABLE_NORMAL: [[(i32, i32); 5]; 4] = [
+                        [(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)],
+                        [(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],
+                        [(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],
+                        [(0, 0), (-1, 0), (-1, -1), (0, 2), (-1, 2)],
+                    ];
+
+                    const KICK_TABLE_I: [[(i32, i32); 5]; 4] = [
+                        [(0, 0), (-1, 0), (2, 0), (-1, 2), (2, -1)],
+                        [(0, 0), (2, 0), (-1, 0), (2, 1), (-1, -2)],
+                        [(0, 0), (1, 0), (-2, 0), (1, -2), (-2, 1)],
+                        [(0, 0), (1, 0), (-2, 0), (-2, -1), (1, 2)],
+                    ];
+
                     let new_field_piece = movement_state.field_piece.rotate_left();
-                    if self.attempt(new_field_piece) {
-                        result.push(movement_state.next_movement_state(
-                            new_field_piece,
-                            piece_movement,
-                            DEFAULT_ACTION_TIME.rotate,
-                        ));
+
+                    match movement_state.field_piece.piece_state.piece {
+                        Piece::O => {
+                            if self.attempt(new_field_piece) {
+                                result.push(movement_state.next_movement_state(
+                                    new_field_piece,
+                                    piece_movement,
+                                    DEFAULT_ACTION_TIME.rotate,
+                                ));
+                            }
+                        }
+                        Piece::I => {
+                            for (srs_state, kick) in KICK_TABLE_I.iter().enumerate() {
+                                let srs_field_piece = new_field_piece.move_by(kick[0].0, kick[0].1);
+                                if self.attempt(srs_field_piece) {
+                                    result.push(movement_state.next_movement_state(
+                                        srs_field_piece.set_super_rotation_state(srs_state as u32),
+                                        piece_movement,
+                                        DEFAULT_ACTION_TIME.rotate,
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
+                        _ => {
+                            for (srs_state, kick) in KICK_TABLE_NORMAL.iter().enumerate() {
+                                let srs_field_piece = new_field_piece.move_by(kick[0].0, kick[0].1);
+                                if self.attempt(srs_field_piece) {
+                                    result.push(movement_state.next_movement_state(
+                                        srs_field_piece.set_super_rotation_state(srs_state as u32),
+                                        piece_movement,
+                                        DEFAULT_ACTION_TIME.rotate,
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
 
-                // TODO: SRS
+                // check if the SRS works correctly
                 PieceMovement::RotateRight => {
+                    // check if the following kick table is correct
+                    const KICK_TABLE_NORMAL: [[(i32, i32); 5]; 4] = [
+                        [(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],
+                        [(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],
+                        [(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)],
+                        [(0, 0), (-2, 0), (-2, -1), (0, 2), (-1, 2)],
+                    ];
+
+                    const KICK_TABLE_I: [[(i32, i32); 5]; 4] = [
+                        [(0, 0), (-2, 0), (1, 0), (-2, -1), (1, 2)],
+                        [(0, 0), (-1, 0), (2, 0), (-1, 2), (2, -1)],
+                        [(0, 0), (2, 0), (-1, 0), (2, 1), (-1, -2)],
+                        [(0, 0), (-2, 0), (1, 0), (1, -2), (-2, 1)],
+                    ];
+
                     let new_field_piece = movement_state.field_piece.rotate_right();
-                    if self.attempt(new_field_piece) {
-                        result.push(movement_state.next_movement_state(
-                            new_field_piece,
-                            piece_movement,
-                            DEFAULT_ACTION_TIME.rotate,
-                        ));
+
+                    match movement_state.field_piece.piece_state.piece {
+                        Piece::O => {
+                            if self.attempt(new_field_piece) {
+                                result.push(movement_state.next_movement_state(
+                                    new_field_piece,
+                                    piece_movement,
+                                    DEFAULT_ACTION_TIME.rotate,
+                                ));
+                            }
+                        }
+                        Piece::I => {
+                            for (srs_state, kick) in KICK_TABLE_I.iter().enumerate() {
+                                let srs_field_piece = new_field_piece.move_by(kick[0].0, kick[0].1);
+                                if self.attempt(srs_field_piece) {
+                                    result.push(movement_state.next_movement_state(
+                                        srs_field_piece.set_super_rotation_state(srs_state as u32),
+                                        piece_movement,
+                                        DEFAULT_ACTION_TIME.rotate,
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
+                        _ => {
+                            for (srs_state, kick) in KICK_TABLE_NORMAL.iter().enumerate() {
+                                let srs_field_piece = new_field_piece.move_by(kick[0].0, kick[0].1);
+                                if self.attempt(srs_field_piece) {
+                                    result.push(movement_state.next_movement_state(
+                                        srs_field_piece.set_super_rotation_state(srs_state as u32),
+                                        piece_movement,
+                                        DEFAULT_ACTION_TIME.rotate,
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -287,10 +379,11 @@ impl Board {
         result
     }
 
-    pub fn place_piece(&self, field_piece: FieldPiece) -> (Board, PlacementKind) {
+    pub fn place_piece(&self, movement_state: &MovementState) -> (Board, PlacementKind) {
         use PlacementKind::*;
 
         let mut new_board = *self; // copy
+        let field_piece = movement_state.field_piece;
         for &(x, y) in field_piece.cells().iter() {
             new_board.cells[y as usize] |= row_x(x);
         }
@@ -323,30 +416,46 @@ impl Board {
             return (new_board, placement_kind);
         }
 
-        match field_piece.super_rotation_state {
-            SuperRotationState::None => {
-                let placement_kind = match cleared_rows {
-                    0 => None,
-                    1 => Clear1,
-                    2 => Clear2,
-                    3 => Clear3,
-                    4 => Clear4,
-                    _ => None,
-                };
+        // t-spin detection
+        // TODO: check if the following code is correct
+        let movements_history = &movement_state.movements_history;
+        if (movements_history.len() > 1)
+            && matches!(
+                movements_history[movements_history.len() - 2], // get the second to last one since the last one is HardDrop
+                PieceMovement::RotateLeft | PieceMovement::RotateRight
+            )
+        {
+            let t_piece_corners = [(-1, 1), (1, 1), (1, -1), (-1, -1)];
+            let t_piece_corners = (0..4)
+                .map(|i| {
+                    self.occupied(
+                        field_piece.position.0
+                            + t_piece_corners[(i + field_piece.piece_state.rotation as usize) / 4]
+                                .0,
+                        field_piece.position.1
+                            + t_piece_corners[(i + field_piece.piece_state.rotation as usize) / 4]
+                                .1,
+                    )
+                })
+                .collect::<Vec<_>>();
 
-                (new_board, placement_kind)
-            }
-            SuperRotationState::Mini => {
-                let placement_kind = match cleared_rows {
-                    0 => MiniTspin,
-                    1 => MiniTspin1,
-                    2 => MiniTspin2,
-                    _ => MiniTspin,
-                };
+            // t-spin
+            if t_piece_corners.iter().filter(|&&x| x).count() >= 3 {
+                // t-spin mini
+                if (!t_piece_corners[0] || !t_piece_corners[1])
+                    && field_piece.super_rotation_state != Some(3)
+                {
+                    let placement_kind = match cleared_rows {
+                        0 => MiniTspin,
+                        1 => MiniTspin1,
+                        2 => MiniTspin2,
+                        _ => MiniTspin,
+                    };
 
-                (new_board, placement_kind)
-            }
-            SuperRotationState::Normal => {
+                    return (new_board, placement_kind);
+                }
+
+                // t-spin normal
                 let placement_kind = match cleared_rows {
                     0 => Tspin,
                     1 => Tspin1,
@@ -355,9 +464,20 @@ impl Board {
                     _ => Tspin,
                 };
 
-                (new_board, placement_kind)
+                return (new_board, placement_kind);
             }
         }
+
+        // normal
+        let placement_kind = match cleared_rows {
+            0 => None,
+            1 => Clear1,
+            2 => Clear2,
+            3 => Clear3,
+            _ => None,
+        };
+
+        (new_board, placement_kind)
     }
 
     pub fn receive_garbage(&self, garbage: u32) -> Board {

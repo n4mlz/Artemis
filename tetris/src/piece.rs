@@ -9,9 +9,9 @@ pub enum Piece {
     Z,
     J,
     L,
-    I,
-    O,
     T,
+    O,
+    I,
 }
 
 impl Piece {
@@ -23,9 +23,9 @@ impl Piece {
             Piece::Z => (4, 20),
             Piece::J => (4, 20),
             Piece::L => (4, 20),
-            Piece::I => (4, 20),
-            Piece::O => (4, 21),
             Piece::T => (4, 20),
+            Piece::O => (4, 21),
+            Piece::I => (4, 20),
         }
     }
 }
@@ -85,43 +85,46 @@ impl PieceState {
     // TODO: fix clippy warning
     pub fn cells(&self) -> [Position; 4] {
         macro_rules! generate_cells {
-            ($([$(($x:expr, $y:expr)),*]),*) => {
-                [$(
-                    [$(($x, $y)),*],   // North
-                    [$(($y, -$x)),*],  // East
-                    [$((-$x, -$y)),*], // South
-                    [$((-$y, $x)),*]   // West
-                ),*]
+            (@normal [$(($x:expr, $y:expr)),*]) => {
+                [
+                    [$(($x, $y)),*],         // North
+                    [$(($y, -$x)),*],        // East
+                    [$((-$x, -$y)),*],       // South
+                    [$((-$y, $x)),*]         // West
+                ]
+            };
+            (@i_piece [$(($x:expr, $y:expr)),*]) => {
+                [
+                    [$(($x, $y)),*],              // North
+                    [$(($y + 1, -$x)),*],         // East
+                    [$((-$x + 1, -$y - 1)),*],    // South
+                    [$((-$y, $x - 1)),*]          // West
+                ]
+            };
+            () => {
+                [
+                    generate_cells!(@normal [(-1, 0), (0, 0), (0, 1), (1, 1)]),     // S
+                    generate_cells!(@normal [(-1, 1), (0, 1), (0, 0), (1, 0)]),     // Z
+                    generate_cells!(@normal [(-1, 0), (0, 0), (1, 0), (-1, 1)]),    // J
+                    generate_cells!(@normal [(-1, 0), (0, 0), (1, 0), (1, 1)]),     // L
+                    generate_cells!(@normal [(-1, 0), (0, 0), (1, 0), (0, 1)]),     // T
+                    generate_cells!(@normal [(0, 0), (1, 0), (0, -1), (1, -1)]),    // O
+                    generate_cells!(@i_piece [(-1, 0), (0, 0), (1, 0), (2, 0)])     // I
+                ]
             };
         }
 
-        const CELLS: &[[Position; 4]] = &generate_cells!(
-            [(-1, 0), (0, 0), (0, 1), (1, 1)],  // S
-            [(-1, 1), (0, 1), (0, 0), (1, 0)],  // Z
-            [(-1, 0), (0, 0), (1, 0), (-1, 1)], // J
-            [(-1, 0), (0, 0), (1, 0), (1, 1)],  // L
-            [(-1, 0), (0, 0), (1, 0), (2, 0)],  // I
-            [(0, 0), (1, 0), (0, -1), (1, -1)], // O
-            [(-1, 0), (0, 0), (1, 0), (0, 1)]   // T
-        );
+        const CELLS: &[[[Position; 4]; 4]; 7] = &generate_cells!();
 
-        let index = self.piece as usize * 4 + self.rotation as usize;
-        CELLS[index]
+        CELLS[self.piece as usize][self.rotation as usize]
     }
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum SuperRotationState {
-    None,
-    Mini, // T-spin only
-    Normal,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct FieldPiece {
     pub piece_state: PieceState,
     pub position: Position,
-    pub super_rotation_state: SuperRotationState,
+    pub super_rotation_state: Option<u32>, // Some: 0, 1, 2, 3
     pub is_locked: bool,
 }
 
@@ -133,7 +136,7 @@ impl FieldPiece {
                 rotation: RotationState::North,
             },
             position: piece.initial_position(),
-            super_rotation_state: SuperRotationState::None,
+            super_rotation_state: None,
             is_locked: false,
         }
     }
@@ -146,6 +149,7 @@ impl FieldPiece {
     pub fn move_by(&self, dx: i32, dy: i32) -> FieldPiece {
         FieldPiece {
             position: (self.position.0 + dx, self.position.1 + dy),
+            super_rotation_state: None,
             ..*self
         }
     }
@@ -153,6 +157,7 @@ impl FieldPiece {
     pub fn rotate_left(&self) -> FieldPiece {
         FieldPiece {
             piece_state: self.piece_state.rotate_left(),
+            super_rotation_state: None,
             ..*self
         }
     }
@@ -160,6 +165,14 @@ impl FieldPiece {
     pub fn rotate_right(&self) -> FieldPiece {
         FieldPiece {
             piece_state: self.piece_state.rotate_right(),
+            super_rotation_state: None,
+            ..*self
+        }
+    }
+
+    pub fn set_super_rotation_state(&self, state: u32) -> FieldPiece {
+        FieldPiece {
+            super_rotation_state: Some(state),
             ..*self
         }
     }

@@ -6,7 +6,7 @@ use tetris::State;
 const C: u32 = 100;
 
 // discount factor for future rewards
-const GAMMA: f64 = 0.95;
+const GAMMA: f64 = 0.9;
 
 // update rate for value
 const UPDATE_RATE: f64 = 0.1;
@@ -18,6 +18,7 @@ pub struct Node<'a> {
     value: Value,
     pub n: u32,
     children: Vec<Node<'a>>,
+    max_children_score: Option<Score>,
 }
 
 impl<'a> Node<'a> {
@@ -31,6 +32,7 @@ impl<'a> Node<'a> {
             value,
             n: 1,
             children: vec![],
+            max_children_score: None,
         }
     }
 
@@ -64,7 +66,13 @@ impl<'a> Node<'a> {
                 value,
                 n: 1,
                 children: vec![],
+                max_children_score: None,
             });
+            self.max_children_score = Some(
+                self.max_children_score
+                    .unwrap_or(i32::MIN)
+                    .max(reward + value),
+            );
         }
     }
 
@@ -85,8 +93,14 @@ impl<'a> Node<'a> {
             best_child.search()
         };
 
+        self.max_children_score = Some(
+            self.max_children_score
+                .unwrap_or(i32::MIN)
+                .max(updated_child_score),
+        );
         self.value = ((1.0 - UPDATE_RATE) * (self.value as f64)
-            + UPDATE_RATE * (GAMMA * updated_child_score as f64)) as Value;
+            + UPDATE_RATE * (GAMMA * self.max_children_score.unwrap() as f64))
+            as Value;
         self.n += 1;
         self.reward + self.value
     }
